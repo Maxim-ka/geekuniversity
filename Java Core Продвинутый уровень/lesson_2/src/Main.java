@@ -1,6 +1,6 @@
-import geekbrains.java_2.lesson_2.MethodTwoDimensionalArray;
-import geekbrains.java_2.lesson_2.MyArrayDataException;
-import geekbrains.java_2.lesson_2.MyArraySizeException;
+import lesson_2.MethodTwoDimensionalArray;
+import lesson_2.MyArrayDataException;
+import lesson_2.MyArraySizeException;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Main {

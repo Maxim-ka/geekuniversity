@@ -1,4 +1,4 @@
-package geekbrains.java_2.lesson_2;
+package lesson_2;
 
 import java.util.Arrays;
 
@@ -15,16 +15,16 @@ public class MethodTwoDimensionalArray {
     public int getSumOfTwoDimensionalArray(String string) throws MyArraySizeException, MyArrayDataException {
         String[] strings = string.trim().split("\n");
         if (strings.length != line)
-            throw new MyArraySizeException("Некорректное количество строк ", line, strings, null);
+            throw new MyArraySizeException(line, strings, null);
         return calculateSum(checkColumnArray(strings));
     }
 
     private String[][] checkColumnArray(String[] strings) throws MyArraySizeException {
         String[][] str = new String[strings.length][];
         for (int i = 0; i < strings.length; i++) {
-            String[] columns = strings[i].split("\\s+|^?$");
+            String[] columns = strings[i].split("\\s+|^$?");
             if (columns.length != column)
-                throw  new MyArraySizeException("Некорректное количество столбцов ", column, strings, strings[i]);
+                throw  new MyArraySizeException(column, strings, strings[i]);
             str[i] = columns;
         }
         return str;

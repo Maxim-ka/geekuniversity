@@ -1,4 +1,4 @@
-package geekbrains.java_2.lesson_2;
+package lesson_2;
 
 import java.lang.Exception;
 
