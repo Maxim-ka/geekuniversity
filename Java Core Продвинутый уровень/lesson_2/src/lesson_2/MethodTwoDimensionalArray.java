@@ -13,10 +13,13 @@ public class MethodTwoDimensionalArray {
     }
 
     public int getSumOfTwoDimensionalArray(String string) throws MyArraySizeException, MyArrayDataException {
+        return calculateSum(checkColumnArray(checkLineArray(string)));
+    }
+
+    private String[] checkLineArray(String string) throws MyArraySizeException {
         String[] strings = string.trim().split("\n");
-        if (strings.length != line)
-            throw new MyArraySizeException(line, strings, null);
-        return calculateSum(checkColumnArray(strings));
+        if (strings.length != line) throw new MyArraySizeException(line, strings, null);
+        return strings;
     }
 
     private String[][] checkColumnArray(String[] strings) throws MyArraySizeException {
