@@ -4,7 +4,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class WordGenerator {
 
-    private int lenPhoneNumber;
     private int minChar;
     private int maxChar;
     private int minLenWord;
@@ -18,16 +17,11 @@ public class WordGenerator {
         this.maxLenWord = maxLenWord;
     }
 
-    public WordGenerator(int lenPhoneNumber) {
-        this.lenPhoneNumber = lenPhoneNumber;
-    }
-
     public String generateString(){
         if (stringBuilder.length() != 0) stringBuilder.delete(0, stringBuilder.length());
-        int size = (lenPhoneNumber != 0)? lenPhoneNumber : ThreadLocalRandom.current().nextInt(minLenWord, maxLenWord);
+        int size = ThreadLocalRandom.current().nextInt(minLenWord, maxLenWord + 1);
         for (int j = 0; j < size; j++) {
-            if (lenPhoneNumber != 0) stringBuilder.append(ThreadLocalRandom.current().nextInt(lenPhoneNumber));
-            else stringBuilder.append((char) (ThreadLocalRandom.current().nextInt(minChar, maxChar + 1)));
+            stringBuilder.append((char) (ThreadLocalRandom.current().nextInt(minChar, maxChar + 1)));
         }
         return stringBuilder.toString();
     }

@@ -9,16 +9,8 @@ public class PhoneBook{
     private final TreeMap<String, ArrayList<String>> contacts = new TreeMap<>();
 
     public void add(String name, String phoneNumber){
-        ArrayList<String> listPhone;
-        if (contacts.containsKey(name)) {
-            listPhone = contacts.get(name);
-            listPhone.add(phoneNumber);
-            contacts.replace(name, listPhone);
-        }else{
-            listPhone = new ArrayList<>();
-            listPhone.add(phoneNumber);
-            contacts.put(name, listPhone);
-        }
+        ArrayList<String> listPhone = contacts.getOrDefault(name, new ArrayList<>());
+        if (listPhone.add(phoneNumber)) contacts.put(name, listPhone);
     }
 
     public void get(String name){

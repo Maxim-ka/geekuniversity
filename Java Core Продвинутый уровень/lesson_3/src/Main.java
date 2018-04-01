@@ -12,6 +12,8 @@ public class Main {
     private static final int LOT = 30;
     private static final int NUMBER_WORDS_IN_LINE = 10;
     private static final int LENGTH_PHONE_NUMBER = 10;
+    private static final int MAX_NUMERAL = 57;
+    private static final int MIN_NUMERAL = 48;
 
     public static void main(String[] args) {
 
@@ -24,7 +26,7 @@ public class Main {
 
         System.out.println("Task_2 __________________________");
         PhoneBook phoneBook = new PhoneBook();
-        WordGenerator generatorPhoneNumber = new WordGenerator(LENGTH_PHONE_NUMBER);
+        WordGenerator generatorPhoneNumber = new WordGenerator(MIN_NUMERAL, MAX_NUMERAL, LENGTH_PHONE_NUMBER, LENGTH_PHONE_NUMBER);
         for (String string : strings) {
             phoneBook.add(string, generatorPhoneNumber.generateString());
         }
@@ -57,13 +59,9 @@ public class Main {
     private static void getListAndNumberOfUniqueWordsUsingHashMap(String[] strings ) {
         System.out.println("Получение списка и количество уникальных слов через HashMap:");
         HashMap<String, Integer> hashMap = new HashMap<>();
-        int original = 1;
         for (String string : strings) {
-            if (hashMap.containsKey(string)){
-                int count = hashMap.get(string);
-                hashMap.replace(string, ++count);
-            }
-            else hashMap.put(string, original);
+            int count = (hashMap.getOrDefault(string, 0));
+            hashMap.put(string, ++count);
         }
         for (Map.Entry<String, Integer> it: hashMap.entrySet()){
             System.out.printf("%-10s - %d\n", it.getKey(), it.getValue());
