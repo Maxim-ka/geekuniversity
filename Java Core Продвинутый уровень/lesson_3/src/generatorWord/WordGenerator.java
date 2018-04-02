@@ -36,14 +36,14 @@ public class WordGenerator {
     }
 
     private String[] addDuplicateWords(String[] strings ){
+        int random;
         for (int i = 0; i < strings.length; i++) {
             do {
-                int random = ThreadLocalRandom.current().nextInt(strings.length);
-                if (i == random) break;
+                random = ThreadLocalRandom.current().nextInt(strings.length);
                 if (!strings[random].equals(strings[i])){
                     strings[i] = strings[random];
                 }
-            }while (true);
+            }while (i != random);
         }
         return strings;
     }
