@@ -31,7 +31,7 @@ public class Main {
             phoneBook.add(string, generatorPhoneNumber.generateString());
         }
         System.out.println("вывод телефона по фамилии:");
-        phoneBook.get(strings[ThreadLocalRandom.current().nextInt(strings.length)]);
+        phoneBook.showPhone(strings[ThreadLocalRandom.current().nextInt(strings.length)]);
     }
 
     private static void showWords(String[] strings) {
