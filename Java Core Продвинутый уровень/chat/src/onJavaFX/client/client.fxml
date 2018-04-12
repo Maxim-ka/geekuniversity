@@ -10,23 +10,23 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
+<BorderPane prefHeight="600.0" prefWidth="800.0" stylesheets="@styleGUI.css"
+            xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="onJavaFX.client.Controller">
    <bottom>
        <HBox alignment="CENTER" BorderPane.alignment="CENTER">
          <Button fx:id="buttonClear" alignment="CENTER" contentDisplay="CENTER" maxWidth="140.0"
                  mnemonicParsing="false" onAction="#clearMessage" onKeyPressed="#clearMessage"
-                 onMouseEntered="#hoverButtonClear" onMouseExited="#leaveButtonClear" prefHeight="66.0"
-                 text="Удаление сообщений" textAlignment="CENTER" wrapText="true">
+                 prefHeight="66.0" text="Удаление сообщений" textAlignment="CENTER" wrapText="true">
             <font>
                <Font size="18.0" />
             </font></Button>
-           <TextField fx:id="textField" onAction="#sendMessage"  prefHeight="66.0" HBox.hgrow="ALWAYS">
+           <TextField fx:id="textField" onAction="#sendMessage" prefHeight="66.0" HBox.hgrow="ALWAYS">
             <font>
                <Font size="24.0" />
             </font></TextField>
            <Button fx:id="buttonSend" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false"
-                   onAction="#sendMessage" onKeyPressed="#sendMessage" onMouseEntered="#hoverButtonSend"
-                   onMouseExited="#leaveButtonSend" prefHeight="66.0" text="Отправить">
+                   onAction="#sendMessage" onKeyPressed="#sendMessage" prefHeight="66.0" text="Отправить">
             <font>
                <Font size="22.0" />
             </font></Button>

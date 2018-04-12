@@ -24,7 +24,7 @@ public class Main {
             array[i] = toCalculateNewValue(array[i], i);
         }
         long completion = System.currentTimeMillis();
-        System.out.printf("Время выполнения метода одним потоком %f сек\n",
+        System.out.printf("Время выполнения метода одним потоком %.3f сек\n",
                 (completion - launch) * IN_SECONDS);
     }
 
@@ -46,7 +46,7 @@ public class Main {
             e.printStackTrace();
         }
         long completion = System.currentTimeMillis();
-        System.out.printf("Время выполнения метода, без разделения массива двумя потоками %f сек\n",
+        System.out.printf("Время выполнения метода, без разделения массива двумя потоками %.3f сек\n",
                 (completion - launch) * IN_SECONDS);
     }
 
@@ -69,7 +69,7 @@ public class Main {
         System.arraycopy(rstHalf, 0, array, 0, HALF);
         System.arraycopy(secondHalf, 0, array, HALF, HALF);
         long completion = System.currentTimeMillis();
-        System.out.printf("Время выполнения метода, c разделением массива на два подмассива %f сек\n",
+        System.out.printf("Время выполнения метода, c разделением массива на два подмассива %.3f сек\n",
                 (completion - launch) * IN_SECONDS);
     }
 
@@ -92,7 +92,7 @@ public class Main {
         System.arraycopy(rstHalf, 0, array, 0, HALF);
         System.arraycopy(secondHalf, HALF, array, HALF, HALF);
         long completion = System.currentTimeMillis();
-        System.out.printf("Время выполнения метода, c разделением массива методом класса System %f сек\n",
+        System.out.printf("Время выполнения метода, c разделением массива методом класса System %.3f сек\n",
                 (completion - launch) * IN_SECONDS);
     }
 }

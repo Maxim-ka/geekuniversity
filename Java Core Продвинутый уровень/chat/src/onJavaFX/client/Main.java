@@ -1,4 +1,4 @@
-package sample;
+package onJavaFX.client;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -19,7 +19,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("client.fxml"));
         primaryStage.setTitle("ЧАТ клиент");
         primaryStage.setResizable(false);
         primaryStage.initStyle(StageStyle.DECORATED);
