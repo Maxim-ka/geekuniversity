@@ -10,26 +10,28 @@ import java.util.Scanner;
 class Server extends ServerSocket{
     private static final String DISCONNECTION = "/end";
     private final Scanner scanner = new Scanner(System.in);
+    private final Object lock = new Object();
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
-    private boolean communication;
-    private boolean work = true;
+    private volatile boolean communication;
+    private volatile boolean work = true;
     private volatile String message;
 
     Server(int port) throws IOException {
         super(port);
         System.out.println("Север запущен, ожидает подключения");
         new Thread(()->{
-            while (!DISCONNECTION.equalsIgnoreCase(message)){
-                message = scanner.nextLine();
-                if (DISCONNECTION.equalsIgnoreCase(message)){
-                    work = false;
-                    System.out.println("Отключение сервера");
-                    scanner.close();
+            while (work){
+                synchronized (lock){
+                    message = scanner.nextLine();
+                    if (DISCONNECTION.equalsIgnoreCase(message)){
+                        work = false;
+                        System.out.println("Отключение сервера");
+                        scanner.close();
+                    }
                 }
                 if (socket == null || socket.isClosed()) {
-                    message = null;
                     if (!work) System.exit(0);
                     System.out.println("Клиент не подключен");
                 }
@@ -47,9 +49,11 @@ class Server extends ServerSocket{
             try {
                 do{
                     if (message != null){
-                        out.writeUTF(message);
-                        out.flush();
-                        message = null;
+                        synchronized (lock){
+                            out.writeUTF(message);
+                            out.flush();
+                            message = null;
+                        }
                     }
                 }while (communication);
             }catch (IOException e) {
