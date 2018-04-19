@@ -11,10 +11,14 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane prefHeight="600.0" prefWidth="800.0" stylesheets="@styleGUI.css" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1">
+<BorderPane prefHeight="600.0" prefWidth="800.0" stylesheets="@styleGUI.css"
+            xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1">
    <bottom>
        <HBox alignment="CENTER" BorderPane.alignment="CENTER">
-         <Button fx:id="buttonClear" alignment="CENTER" contentDisplay="CENTER" maxWidth="140.0" mnemonicParsing="false" onAction="#clearMessage" onKeyPressed="#clearMessage" prefHeight="66.0" text="Удаление сообщений" textAlignment="CENTER" wrapText="true">
+         <Button fx:id="buttonClear" alignment="CENTER" contentDisplay="CENTER" maxWidth="140.0"
+                 mnemonicParsing="false" onAction="#clearMessage"
+                 onKeyPressed="#clearMessage" prefHeight="66.0" text="Удаление сообщений"
+                 textAlignment="CENTER" wrapText="true">
             <font>
                <Font size="18.0" />
             </font></Button>

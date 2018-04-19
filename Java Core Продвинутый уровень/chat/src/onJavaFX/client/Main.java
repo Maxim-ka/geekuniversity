@@ -5,6 +5,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -14,7 +15,7 @@ import onJavaFX.SMC;
 import java.io.IOException;
 import java.util.Optional;
 
-import static javafx.scene.control.ButtonType.YES;
+import static javafx.scene.control.ButtonType.OK;
 
 public class Main extends Application {
 
@@ -30,12 +31,14 @@ public class Main extends Application {
         primaryStage.initStyle(StageStyle.DECORATED);
         primaryStage.setOnCloseRequest((WindowEvent event) -> {
             if (event.getEventType() == WindowEvent.WINDOW_CLOSE_REQUEST){
-                Optional<ButtonType> result = new Caution("Вы точно хотите выйти из чата?").showAndWait();
-                if (result.isPresent() && result.get() == YES) {
+                Optional<ButtonType> result = new Caution(Alert.AlertType.CONFIRMATION,
+                        "Вы точно хотите выйти из чата?").showAndWait();
+                if (result.isPresent() && result.get() == OK) {
                     if (controller.isAuthorized()){
                         try {
                             controller.getOut().writeUTF(SMC.DISCONNECTION);
                             controller.getOut().flush();
+                            controller.setExit(true);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

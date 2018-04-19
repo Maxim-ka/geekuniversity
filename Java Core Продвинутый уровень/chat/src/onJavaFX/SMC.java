@@ -9,5 +9,6 @@ public class SMC {
     public static final String REPETITION = "/repetition";
     public static final String W = "/w";
     public static final String NO = "/not";
-
+    public static final String AUTH = "/auth ";
+    public static final String PREFIX = "/";
 }

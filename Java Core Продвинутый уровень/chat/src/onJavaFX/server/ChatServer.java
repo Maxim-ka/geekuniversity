@@ -1,5 +1,7 @@
 package onJavaFX.server;
 
+import onJavaFX.SMC;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -10,9 +12,10 @@ import java.util.Vector;
 class ChatServer extends Thread{
 
     private static final int TIMEOUT = 3000;
+    private static final int LIMIT = 3;
     private int port;
-    private final Vector<ClientHandler> clients  = new Vector<>();;
-    private final AuthService authService = new AuthService();;
+    private final Vector<ClientHandler> clients  = new Vector<>();
+    private final AuthService authService = new AuthService();
 
     ChatServer(int port) {
         this.port = port;
@@ -39,6 +42,7 @@ class ChatServer extends Thread{
                 new ClientHandler(this, socket);
                 System.out.println("Клиент подключился");
             }
+            stopClientHandler();
         }catch (IOException e) {
             e.printStackTrace();
         }catch (ClassNotFoundException | SQLException e){
@@ -49,19 +53,20 @@ class ChatServer extends Thread{
         }
     }
 
-    synchronized String sendToSpecificClient(String[] strings, ClientHandler clientHandler){
+    private void stopClientHandler(){
+        broadcastMsg(SMC.DISCONNECTION);
+    }
+
+    synchronized void sendPrivateMessages(String message, ClientHandler clientHandler){
+        String[] strings = message.split("\\s+", LIMIT);
         for (ClientHandler client : clients) {
             if (client.getNick().equals(strings[1])){
-                StringBuilder  stringBuilder = new StringBuilder();
-                for (int i = 2; i < strings.length; i++) {
-                     stringBuilder.append(strings[i]).append(" ");
-                }
-                String message = stringBuilder.toString();
-                client.sendMessage(String.format("%s: %s;", clientHandler.getNick(), message));
-                return message;
+                client.sendMessage(String.format("%s: %s;", clientHandler.getNick(), strings[2]));
+                clientHandler.sendMessage(String.format("%s: @%s (%s);",clientHandler.getNick(), strings[1], strings[2]));
+                return;
             }
         }
-        return null;
+        clientHandler.sendMessage(String.format("%s %s", SMC.NO, strings[1]));
     }
 
     synchronized boolean isBusyNick(String nick){

@@ -9,7 +9,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.paint.Color;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 import onJavaFX.SMC;
 
@@ -22,6 +21,7 @@ import java.util.Optional;
 
 class Controller {
     private static final String NO_COMMUNICATION = "Отсутствует связь с сервером";
+    private static final int LIMIT = 2;
     @FXML
     private Label label;
     @FXML
@@ -39,6 +39,11 @@ class Controller {
     private DataOutputStream out;
     private DataInputStream in;
     private volatile boolean authorized;
+    private boolean exit;
+
+    public void setExit(boolean exit) {
+        this.exit = exit;
+    }
 
     public DataOutputStream getOut() {
         return out;
@@ -54,21 +59,29 @@ class Controller {
         try {
             if (socket.isClosed())  authorize(false);
             else {
-                out.writeUTF(textField.getText());
+                String string = textField.getText();
+                if (string.equalsIgnoreCase(SMC.DISCONNECTION)) exit = true;
+                out.writeUTF(string);
                 out.flush();
                 textField.clear();
                 textField.requestFocus();
             }
         }catch (IOException e) {
-            e.printStackTrace();
+            try {
+                socket.close();
+                authorize(false);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
         }
     }
 
     @FXML
     private void clearMessage() {
         if (textArea.getText().isEmpty()) return;
-        Optional<ButtonType> result = new Caution("Вы точно хотите удалить все записи в чате?").showAndWait();
-        if (result.isPresent() && result.get().equals(ButtonType.YES)) {
+        Optional<ButtonType> result = new Caution(Alert.AlertType.CONFIRMATION,
+                "Вы точно хотите удалить все записи в чате?").showAndWait();
+        if (result.isPresent() && result.get().equals(ButtonType.OK)) {
             textArea.clear();
             textField.requestFocus();
         }
@@ -77,15 +90,13 @@ class Controller {
     @FXML
     private void sendAuthMsg(){
         if (loginField.getText().isEmpty() || passField.getText().isEmpty()) {
-            Alert alert = new Alert(Alert.AlertType.WARNING,"Поля: логин и/или пароль не заполнены");
-            alert.setHeaderText(null);
-            alert.initModality(Modality.APPLICATION_MODAL);
-            alert.showAndWait();
+            new Caution(Alert.AlertType.WARNING,
+                    "Поля: логин и/или пароль не заполнены").showAndWait();
             return;
         }
         if(isConnect()){
             try {
-                out.writeUTF(String.format("/auth %s %s", loginField.getText(), passField.getText()));
+                out.writeUTF(String.format("%s %s %s", SMC.AUTH, loginField.getText(), passField.getText()));
                 out.flush();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -112,7 +123,7 @@ class Controller {
                 Parent root = loader.load();
                 stage.setScene(new Scene(root));
                 stage.centerOnScreen();
-                if (socket.isClosed())outputToLabel(NO_COMMUNICATION);
+                if (socket.isClosed() && !exit)outputToLabel(NO_COMMUNICATION);
                 stage.show();
             }catch (IOException e) {
                 e.printStackTrace();
@@ -144,35 +155,39 @@ class Controller {
                 String string;
                 do{
                     string = in.readUTF();
-                    String[] strings = string.split("\\s+");
-                    switch (strings[0].toLowerCase()){
-                        case SMC.OK:
-                            authorize(true);
-                            outputToLabel(strings[1]);
-                            break;
-                        case SMC.DISCONNECTION:
-                            authorize(false);
-                            break;
-                        case SMC.INVALID:
-                            outputToLabel("Неверный логин и/или пароль");
-                            break;
-                        case SMC.REPETITION:
-                            outputToLabel("Учетная запись уже используется");
-                            break;
-                        case SMC.NO:
-                            Platform.runLater(()->{
-                                Alert alert = new Alert(Alert.AlertType.ERROR);
-                                alert.initModality(Modality.APPLICATION_MODAL);
-                                alert.setHeaderText("Сообщение не было доставлено.");
-                                alert.setContentText(String.format("Отсутствие адресата %s", strings[1]));
-                                alert.showAndWait();
-                            });
-                            break;
-                        default:
-                            if (authorized) textArea.appendText(string + "\n");
-                    }
+                    String[] strings = string.split("\\s+", LIMIT);
+                    if (strings[0].startsWith(SMC.PREFIX)){
+                        switch (strings[0].toLowerCase()){
+                            case SMC.OK:
+                                authorize(true);
+                                outputToLabel(strings[1]);
+                                break;
+                            case SMC.DISCONNECTION:
+                                out.writeUTF(SMC.DISCONNECTION);
+                                out.flush();
+                                authorize(false);
+                                break;
+                            case SMC.INVALID:
+                                outputToLabel("Неверный логин и/или пароль");
+                                break;
+                            case SMC.REPETITION:
+                                outputToLabel("Учетная запись уже используется");
+                                break;
+                            case SMC.NO:
+                                Platform.runLater(()->{
+                                    new Caution(Alert.AlertType.ERROR,
+                                        String.format("Сообщение не было доставлено. Отсутствие адресата %s",
+                                                    strings[1])).showAndWait();
+                                });
+                                break;
+                            default:
+                                new Caution(Alert.AlertType.ERROR,
+                                        String.format("Неизвестное сообщение: %s", string)).showAndWait();
+                        }
+                    }else if (authorized) textArea.appendText(string + "\n");
                 }while (authorized);
             }catch (IOException e){
+                authorize(false);
                 e.printStackTrace();
             }finally {
                 try {
