@@ -40,7 +40,7 @@ public class Main {
         byte[] arrByte = new byte[SIZE_BYTES];
         ArrayList<InputStream> inputStreamArrayList = new ArrayList<>();
         try (PrintWriter printWriter = new PrintWriter
-                (new BufferedWriter(new FileWriter("task_2.txt")), true)){
+                (new BufferedWriter(new OutputStreamWriter(new FileOutputStream("task_2.txt"), UTF_8)), true)){
              for (File nameFile : nameFiles) {
                 inputStreamArrayList.add(new FileInputStream(nameFile));
             }
