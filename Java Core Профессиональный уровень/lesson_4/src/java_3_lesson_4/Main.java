@@ -11,7 +11,7 @@ public class Main {
     private static final Object ob = new Object();
     private static final String[] letters = {"A", "B", "C"};
     private static volatile int currentIndex;
-
+    private static final String PATH_FILE = "task_2.txt";
     private static final int LEN_STRING = 50;
     private static final int NUMBER_STRING = 10;
     private static final int DELAY = 20;
@@ -60,40 +60,45 @@ public class Main {
         String[] text = {getText(MIN_ENGLISH_LETTERS, MAX_ENGLISH_LETTERS),
                 getText(MIN_RUSSIAN_LETTERS, MAX_RUSSIAN_LETTERS),
                 getText(MIN_DIGIT_SYMBOL, MAX_DIGIT_SYMBOL)};
-        File file;
-        if ((file = new File("task_2.txt")).exists()) file.delete();
-        runTask_2(file, text);
-        System.out.printf("смотри файл %s\n", file);
+        runTask_2(PATH_FILE, text);
         System.out.println("task_3");
         new MFD().launch();
     }
 
-    private static void runTask_2(File file, String[] strings ){
-        int size = strings.length;
-        ExecutorService executorService = Executors.newFixedThreadPool(size);
-        for (int i = 0; i < size; i++) {
-            final int index = i;
-            executorService.execute(() -> {
-                try (PrintWriter fileWriter = new PrintWriter
-                        (new BufferedWriter(new FileWriter(file, true), LEN_STRING), true)){
-                    for (int j = 0; j < NUMBER_STRING; j++) {
-                        Thread.sleep(DELAY);
-                        synchronized (ob) {
-                            while (currentIndex != index) {
-                                ob.wait();
+    private static void runTask_2(String pathFile, String[] strings ){
+        try (PrintWriter fileWriter = new PrintWriter
+                (new BufferedWriter(new FileWriter(pathFile), LEN_STRING), true)){
+            int size = strings.length;
+            CountDownLatch count = new CountDownLatch(size);
+            ExecutorService executorService = Executors.newFixedThreadPool(size);
+            for (int i = 0; i < size; i++) {
+                final int index = i;
+                executorService.execute(() -> {
+                    try {
+                        for (int j = 0; j < NUMBER_STRING; j++) {
+                            Thread.sleep(DELAY);
+                            synchronized (ob) {
+                                while (currentIndex != index) {
+                                    ob.wait();
+                                }
+                                fileWriter.printf("%d) %s\n", j + 1, strings[index]);
+                                currentIndex++;
+                                if (currentIndex == size) currentIndex = 0;
+                                ob.notifyAll();
                             }
-                            fileWriter.printf("%d) %s\n", j + 1, strings[index]);
-                            currentIndex++;
-                            if (currentIndex == size) currentIndex = 0;
-                            ob.notifyAll();
                         }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
-                } catch (IOException | InterruptedException e) {
-                    e.printStackTrace();
-                }
-            });
+                    count.countDown();
+                });
+            }
+            executorService.shutdown();
+            count.await();
+            System.out.printf("смотри файл %s\n", pathFile);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
         }
-        executorService.shutdown();
     }
 
     private static String getText(int min, int max){
