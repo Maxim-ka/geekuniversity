@@ -1,10 +1,15 @@
 package java_3_lesson_5;
 
+import java.util.concurrent.Semaphore;
+
 public class Tunnel extends Stage {
 
-    public Tunnel(){
+    private final Semaphore semaphore;
+
+    public Tunnel(Semaphore semaphore){
         this.length = 80;
         this.description = "Тоннель " + length + " метров";
+        this.semaphore = semaphore;
     }
 
     @Override
