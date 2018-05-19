@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 class Asteroid {
+    private final float rotateInDegrees = 180.0f;
     private final float impulse = 250.0f;
     private final float mass = 100.0f;
     private Texture texture = new Texture("asteroid64.png");
@@ -19,6 +20,7 @@ class Asteroid {
     private int halfWidth = width / 2;
     private int halfHeight = height / 2;
     private float startGravity;
+    private float gravity;
 
     public boolean isActive() {
         return active;
@@ -31,6 +33,7 @@ class Asteroid {
         vy = (float) Math.sin(angle) * impulse;
         startGravity = distance * (float)Math.cos(angle);
         active = true;
+        gravity = mass;
     }
 
     void render(SpriteBatch batch){
@@ -40,11 +43,17 @@ class Asteroid {
     }
 
     void update(float dt){
-        angle -= 180.0f * dt;
+        angle -= rotateInDegrees * dt;
         x += vx * dt;
         if (x > Gdx.app.getGraphics().getWidth()) active = false;
         y += vy * dt;
-        if (x >= startGravity) vy = (y <= 0) ? -vy  : vy - mass * dt;
+        if (x >= startGravity) {
+            if (y <= 0){
+                vy = -vy;
+                if (vy > 0) gravity *= 2;
+                else vy = -y;
+            }else vy -= gravity * dt;
+        }
     }
 
     void dispose(){

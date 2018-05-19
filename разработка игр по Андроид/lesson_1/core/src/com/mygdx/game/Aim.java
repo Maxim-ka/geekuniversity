@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class Aim {
+    private final float rotateInDegrees = 90.0f;
     private final float distance = 200.0f;
     private final float maxAngle = (float) (Math.PI / 3);
     private Texture texture = new Texture("aim.png");
@@ -29,7 +30,7 @@ public class Aim {
     }
 
     void update(float dt){
-        rotate -= 90.0f * dt;
+        rotate -= rotateInDegrees * dt;
         if (Gdx.input.isKeyPressed(Input.Keys.W)){
             angle += maxAngle * dt;
             if (angle > maxAngle) angle = maxAngle;
