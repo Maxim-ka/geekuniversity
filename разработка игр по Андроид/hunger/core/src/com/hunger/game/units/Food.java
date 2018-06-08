@@ -1,20 +1,19 @@
 package com.hunger.game.units;
 
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector2;
+import com.hunger.game.GameScreen;
 
 public class Food extends GamePoint{
 
     public enum Type {
-        PIZZA(new Texture("pizza_big.png"), 0.05f), LEMON(new Texture("lemon.png"), -0.1f),
-        DOUGHNUT(new Texture("doughnut_big.png"), 0.1f);
+        PIZZA("pizza", 0.05f), LEMON("lemon", -0.1f),
+        DOUGHNUT("doughnut", 0.1f);
 
-        private Texture texture;
+        private String textureName;
         private float satiety;
 
-        Type(Texture texture, float satiety) {
-            this.texture = texture;
+        Type(String textureName, float satiety) {
+            this.textureName = textureName;
             this.satiety = satiety;
         }
     }
@@ -25,16 +24,20 @@ public class Food extends GamePoint{
         return type;
     }
 
-    public Food(Type type){
-        super(type.texture);
+    public Food(GameScreen gs, Type type){
+        super(gs, type.textureName);
         this.type = type;
-        velocity = new Vector2(MathUtils.random(-90.0f, 90.0f), MathUtils.random(-90.0f, 90.0f));
         satiety = type.satiety;
     }
 
-    public void changeTypeFood(){
+    public void init(){
+        super.init();
+        changeTypeFood();
+    }
+
+    private void changeTypeFood(){
         type = Food.Type.values()[MathUtils.random(Food.Type.values().length - 1)];
-        texture = type.texture;
+        texture = gs.getAtlas().findRegion(type.textureName);
         satiety = type.satiety;
         velocity.set(MathUtils.random(-90.0f, 90.0f), MathUtils.random(-90.0f, 90.0f));
     }
@@ -43,11 +46,5 @@ public class Food extends GamePoint{
         super.update(dt);
         position.mulAdd(velocity, dt);
         angle = (velocity.x < 0) ? angle + 90.0f * dt : angle - 90.0f * dt;
-    }
-
-    public void dispose(){
-        for (int i = 0; i < Type.values().length; i++) {
-            Type.values()[i].texture.dispose();
-        }
     }
 }

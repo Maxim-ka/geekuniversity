@@ -1,7 +1,7 @@
 package com.hunger.game.units;
 
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
+import com.hunger.game.GameScreen;
 import com.hunger.game.Rules;
 
 public abstract class Eater extends GamePoint {
@@ -11,40 +11,51 @@ public abstract class Eater extends GamePoint {
     Vector2 target;
     Vector2 tmp;
 
-    Eater(Texture texture){
-        super(texture);
-        velocity = new Vector2(0.0f, 0.0f);
-        tmp = new Vector2(0.0f, 0.0f);
-        target = new Vector2(0.0f, 0.0f);
+    Eater(GameScreen gs, String textureName){
+        super(gs, textureName);
+        tmp = new Vector2();
+        target = new Vector2();
         scale = Rules.SCALE_EATER;
         satiety = 0.1f;
     }
 
     public void update(float dt){
         super.update(dt);
+        velocity.scl(0.98f);
+        position.mulAdd(velocity, dt);
+    }
+
+    void getSpeed(float dt){
         if (angle < angleToTarget) angle = (Math.abs(angle - angleToTarget) <= 180.0f)? angle + 180.0f *dt : angle - 180.0f *dt;
         if (angle > angleToTarget) angle = (Math.abs(angle - angleToTarget) <= 180.0f)? angle - 180.0f *dt : angle + 180.0f *dt;
         if (angle < 0.0f) angle += 360.0f;
         if (angle > 360.0f) angle -= 360.0f;
         velocity.add(acceleration * (float) Math.cos(Math.toRadians(angle)) * dt, acceleration * (float) Math.sin(Math.toRadians(angle)) * dt);
-        velocity.scl(0.96f);
-        position.mulAdd(velocity, dt);
+    }
+
+    public void init(){
+        super.init();
+        scale = Rules.SCALE_EATER;
+    }
+
+    public void smite(Eater another){
+        if (this.scale * this.halfWidth < another.scale * another.halfWidth) another.gorge(this);
+        else this.gorge(another);
+
     }
 
     public void gorge(GamePoint another){
-        if (isRunOver(another)){
-            if (this.getClass().getSuperclass().getSimpleName().equals(another.getClass().getSuperclass().getSimpleName())){
-                if (this.scale * this.halfWidth < another.scale * another.halfWidth){
-                    another.scale += this.satiety;
-                    this.scale = 0.25f;
-                    this.position.set(getCoordinate(Rules.WORLD_WIDTH), getCoordinate(Rules.WORLD_HEIGHT));
-                    return;
-                }else another.scale = 0.25f;
-            }
-            this.scale += another.satiety;
-            if (this.scale <= Rules.MIN_SCALE) this.scale = Rules.MIN_SCALE;
-            another.position.set(getCoordinate(Rules.WORLD_WIDTH), getCoordinate(Rules.WORLD_HEIGHT));
-        }
+        this.scale += another.satiety;
+        if (this.scale <= Rules.MIN_SCALE) this.scale = Rules.MIN_SCALE;
+        another.active = false;
     }
 
+    public boolean isRunOver(GamePoint another) {
+        float distance = getDistance(another);
+        return  distance < (this.scale * this.halfWidth) || distance < (another.scale * another.halfWidth);
+    }
+
+    float getDistance(GamePoint another){
+        return this.position.dst(another.position);
+    }
 }
