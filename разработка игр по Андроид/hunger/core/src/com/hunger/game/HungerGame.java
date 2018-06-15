@@ -13,6 +13,7 @@ public class HungerGame extends Game {
 	public void create () {
 		batch = new SpriteBatch();
 		gameScreen = new GameScreen(batch);
+		Assets.getInstance().loadAssets();
 		setScreen(gameScreen);
 	}
 

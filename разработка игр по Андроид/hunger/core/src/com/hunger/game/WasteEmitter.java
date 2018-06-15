@@ -1,47 +1,32 @@
 package com.hunger.game;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.hunger.game.units.Waste;
 
 public class WasteEmitter extends ObjectPool<Waste> {
 
+    private final String[] textureName = {"corpse", "thorn", "detonation"};
+    private final TextureRegion[] regions = new TextureRegion[textureName.length];
     private GameScreen gs;
-    private int numEnemy;
-    private int numFood;
+
 
     WasteEmitter(GameScreen gs){
         this.gs = gs;
-        numEnemy = gs.getEnemies().freeList.size() * 2;
-        numFood = gs.getEnemies().freeList.size() * gs.getFoods().freeList.size();
-        addObjectsToFreeList(numEnemy + numFood);
+        toRegions();
+        addObjectsToFreeList(gs.getHooligans().freeList.size() * gs.getFoods().freeList.size());
+    }
+
+    private void toRegions(){
+        for (int i = 0; i < regions.length; i++) {
+            regions[i] = Assets.getInstance().getAtlas().findRegion(textureName[i]);
+        }
     }
 
     void render(SpriteBatch batch){
         for (int i = 0; i < activeList.size(); i++) {
             activeList.get(i).render(batch);
         }
-    }
-
-    Waste getThorn(){
-        for (int i = freeList.size() - 1; i >= 0; i--) {
-            if (freeList.get(i).getType() == Waste.Type.THORN){
-                activeList.add(freeList.remove(i));                ;
-                return activeList.get(activeList.size() - 1);
-            }
-        }
-        activeList.add(new Waste(gs, Waste.Type.THORN));
-        return activeList.get(activeList.size() - 1);
-    }
-
-    Waste getCorpse(){
-        for (int i = freeList.size() - 1; i >= 0; i--) {
-            if (freeList.get(i).getType() == Waste.Type.CORPSE){
-                activeList.add(freeList.remove(i));
-                return activeList.get(activeList.size() - 1);
-            }
-        }
-        activeList.add(new Waste(gs, Waste.Type.CORPSE));
-        return activeList.get(activeList.size() - 1);
     }
 
     void update(float dt){
@@ -53,10 +38,6 @@ public class WasteEmitter extends ObjectPool<Waste> {
 
     @Override
     protected Waste newObject() {
-        if (numFood > 0){
-            numFood--;
-            return new Waste(gs, Waste.Type.THORN);
-        }
-        return new Waste(gs, Waste.Type.CORPSE);
+        return new Waste(gs, regions);
     }
 }

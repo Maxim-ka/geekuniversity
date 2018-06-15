@@ -1,5 +1,6 @@
 package com.hunger.game.units;
 
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.hunger.game.GameScreen;
 import com.hunger.game.Rules;
@@ -21,7 +22,7 @@ public abstract class Eater extends GamePoint {
 
     public void update(float dt){
         super.update(dt);
-        velocity.scl(0.98f);
+        velocity.scl(0.97f);
         position.mulAdd(velocity, dt);
     }
 
@@ -39,9 +40,10 @@ public abstract class Eater extends GamePoint {
     }
 
     public void smite(Eater another){
-        if (this.scale * this.halfWidth < another.scale * another.halfWidth) another.gorge(this);
-        else this.gorge(another);
-
+        if (another.isActive()){
+            if (this.scale * this.halfWidth < another.scale * another.halfWidth) another.gorge(this);
+            else this.gorge(another);
+        }
     }
 
     public void gorge(GamePoint another){
@@ -57,5 +59,9 @@ public abstract class Eater extends GamePoint {
 
     float getDistance(GamePoint another){
         return this.position.dst(another.position);
+    }
+
+    float getRandomAcceleration(){
+        return MathUtils.random(200.0f, 400.0f);
     }
 }
