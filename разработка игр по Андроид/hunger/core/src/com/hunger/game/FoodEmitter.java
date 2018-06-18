@@ -32,12 +32,20 @@ public class FoodEmitter extends ObjectPool<Food> {
         }
     }
 
+    private void generateFood() {
+        int shareOfCalories = 50 + gs.getHero().getLevelConditions();
+        int shareBadFood = 10 + gs.getHero().getLevelConditions();
+        Food.Type goodFood = (MathUtils.random(100) < shareOfCalories) ? Food.Type.PIZZA : Food.Type.DOUGHNUT;
+        Food.Type type = (MathUtils.random(100) < shareBadFood) ? Food.Type.LEMON : goodFood;
+        getActiveElement().init(type);
+    }
+
     void update(float dt){
         if (activeList.size() < number) {
             time += dt;
             if (time >= 0.5f){
                 time = 0.0f;
-                getActiveElement().init(Food.Type.values()[MathUtils.random(Food.Type.values().length - 1)]);
+                generateFood();
             }
         }
         for (int i = 0; i < activeList.size(); i++) {

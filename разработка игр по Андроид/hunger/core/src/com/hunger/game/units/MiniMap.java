@@ -1,43 +1,60 @@
 package com.hunger.game.units;
 
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
+import com.hunger.game.Assets;
 import com.hunger.game.GameScreen;
 import com.hunger.game.Rules;
 
 public class MiniMap extends GamePoint {
 
+    private final TextureRegion regionMiniHero = Assets.getInstance().getAtlas().findRegion("miniHero");
+    private final TextureRegion regionMiniEnemy = Assets.getInstance().getAtlas().findRegion("miniEnemy");
+    private final TextureRegion regionMiniGoodFood = Assets.getInstance().getAtlas().findRegion("miniGoodFood");
+    private final int halfWidthMiniHero = regionMiniHero.getRegionWidth() / 2;
+    private final int halfHeightMiniHero = regionMiniHero.getRegionHeight()/2;
+    private final int halfWidthMiniEnemy = regionMiniEnemy.getRegionWidth() / 2;
+    private final int halfHeightMiniEnemy = regionMiniEnemy.getRegionHeight() / 2;
+    private final int halfWidthMiniGoodFood = regionMiniGoodFood.getRegionWidth() / 2;
+    private final int halfHeightMiniGoodFood = regionMiniGoodFood.getRegionHeight() / 2;
     private GameScreen gs;
-    private float locationX;
-    private float locationY;
-    private float relationX;
-    private float relationY;
+    private float scanRadius;
     private Vector2 tmp;
 
     public MiniMap(GameScreen gs) {
-        super(gs, "miniMap");
+        super(gs, "scanerMiniMap");
         this.gs = gs;
-        locationX = gs.getViewPort().getWorldWidth() / 2 - halfWidth - Rules.INDENT;
-        locationY = gs.getViewPort().getWorldHeight() / 2 - halfHeight - Rules.INDENT;
+        position.set(Rules.WORLD_WIDTH - halfWidth - Rules.INDENT, halfHeight + Rules.INDENT);
         active = true;
-        relationX = Rules.GLOBAL_WIDTH / width;
-        relationY = Rules.GLOBAL_HEIGHT / height;
+        scanRadius = 1000.0f;
         tmp = new Vector2();
     }
 
-    Vector2 getPositionMini(Vector2 pos){
-        float originOfCoordinatesX = gs.getCamera().position.x + locationX - halfWidth;
-        float originOfCoordinatesY = gs.getCamera().position.y - locationY - halfHeight;
-        float x = originOfCoordinatesX + pos.x / relationX;
-        if (x < originOfCoordinatesX) x = originOfCoordinatesX;
-        if (x > originOfCoordinatesX + width)  x = originOfCoordinatesX + width;
-        float y = originOfCoordinatesY + pos.y / relationY;
-        if (y < originOfCoordinatesY) y = originOfCoordinatesY;
-        if (y > originOfCoordinatesY + height) y = originOfCoordinatesY + height;
-        return tmp.set(x, y);
+    public void render(SpriteBatch batch){
+        super.render(batch);
+        if (gs.getHero().isActive()){
+            batch.draw(regionMiniHero, this.position.x - halfWidthMiniHero, this.position.y - halfHeightMiniHero);
+        }
+        for (int i = 0; i < gs.getHooligans().getActiveList().size(); i++) {
+            if (isScans(gs.getHooligans().getActiveList().get(i)))
+                batch.draw(regionMiniEnemy, this.position.x - halfWidthMiniEnemy + tmp.x, this.position.y + tmp.y - halfHeightMiniEnemy);
+        }
+        for (int i = 0; i < gs.getFoods().getActiveList().size(); i++) {
+            if (gs.getFoods().getActiveList().get(i).getType() != Food.Type.LEMON){
+                if (isScans(gs.getFoods().getActiveList().get(i)))
+                    batch.draw(regionMiniGoodFood, this.position.x + tmp.x - halfWidthMiniGoodFood, this.position.y + tmp.y - halfHeightMiniGoodFood);
+            }
+        }
     }
 
-    @Override
-    public void update(float dt) {
-        this.position.set(gs.getCamera().position.x + locationX, gs.getCamera().position.y - locationY);
+    private boolean isScans(GamePoint unit){
+        if (gs.getHero().getDistance(unit) <= scanRadius){
+            tmp.set(unit.position);
+            tmp.sub(gs.getHero().position);
+            tmp.scl(halfWidth / scanRadius);
+            return true;
+        }
+        return false;
     }
 }

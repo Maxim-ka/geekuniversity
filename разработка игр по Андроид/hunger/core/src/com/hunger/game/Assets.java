@@ -35,16 +35,32 @@ public class Assets {
         assetManager = new AssetManager();
     }
 
-    public void loadAssets(){
-        assetManager.load("hunger_1.pack", TextureAtlas.class);
-        assetManager.load("to_be_continued.mp3", Music.class);
-        assetManager.load("Beverly_hills_COP_1984.mp3", Music.class);
-        createStdFont(48);
-        assetManager.finishLoading();
-        atlas = assetManager.get("hunger_1.pack");
+    public void loadAssets(ScreenManager.ScreenType type){
+        switch (type){
+            case GAME:
+                assetManager.load("hunger_game.pack", TextureAtlas.class);
+                assetManager.load("to_be_continued.mp3", Music.class);
+                assetManager.load("Beverly_hills_COP_1984.mp3", Music.class);
+                createStdFont(48);
+                break;
+            case MENU:
+                assetManager.load("menu_hunger.pack", TextureAtlas.class);
+                createStdFont(32);
+                createStdFont(92);
+                break;
+        }
     }
 
-    public void createStdFont(int size) {
+    public void makeLinks(){
+        if (assetManager.isLoaded("menu_hunger.pack")){
+            atlas = assetManager.get("menu_hunger.pack");
+            return;
+        }
+        if (assetManager.isLoaded("hunger_game.pack"))
+            atlas = assetManager.get("hunger_game.pack");
+    }
+
+    private void createStdFont(int size) {
         FileHandleResolver resolver = new InternalFileHandleResolver();
         assetManager.setLoader(FreeTypeFontGenerator.class, new FreeTypeFontGeneratorLoader(resolver));
         assetManager.setLoader(BitmapFont.class, ".ttf", new FreetypeFontLoader(resolver));

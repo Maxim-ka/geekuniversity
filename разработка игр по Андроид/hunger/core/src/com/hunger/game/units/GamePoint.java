@@ -25,14 +25,6 @@ public abstract class GamePoint implements Poolable {
     int halfHeight;
     boolean active;
 
-    public int getHalfWidth() {
-        return halfWidth;
-    }
-
-    public int getHalfHeight() {
-        return halfHeight;
-    }
-
     public Vector2 getPosition() {
         return position;
     }
@@ -74,22 +66,10 @@ public abstract class GamePoint implements Poolable {
     }
 
     public void update(float dt){
-        if (position.x < 0) {
-            position.x = 0;
-            velocity.x = -velocity.x;
-        }
-        if (position.y < 0){
-            position.y = 0;
-            velocity.y = -velocity.y;
-        }
-        if (position.x > Rules.GLOBAL_WIDTH){
-            position.x = Rules.GLOBAL_WIDTH;
-            velocity.x = -velocity.x;
-        }
-        if (position.y > Rules.GLOBAL_HEIGHT){
-            position.y = Rules.GLOBAL_HEIGHT;
-            velocity.y = -velocity.y;
-        }
+        if (position.x < -halfWidth) position.x = Rules.GLOBAL_WIDTH + halfWidth;
+        if (position.y < -halfHeight) position.y = Rules.GLOBAL_HEIGHT + halfHeight;
+        if (position.x > Rules.GLOBAL_WIDTH + halfWidth) position.x = -halfWidth;
+        if (position.y > Rules.GLOBAL_HEIGHT + halfHeight) position.y = -halfHeight;
     }
 
     private int getCoordinate(int limit){

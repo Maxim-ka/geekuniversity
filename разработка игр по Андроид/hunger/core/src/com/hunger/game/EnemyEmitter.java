@@ -22,9 +22,10 @@ public class EnemyEmitter extends ObjectPool<Enemy> {
     }
 
     void update(float dt){
-        if (activeList.size() < number) {
+        if (activeList.size() < number + gs.getHero().getLevelConditions()) {
+            float interval = 5.0f - gs.getHero().getLevelConditions() / 5.0f;
             time += dt;
-            if (time >= 2.0f){
+            if (time >= interval){
                 time = 0.0f;
                 getActiveElement().init();
             }

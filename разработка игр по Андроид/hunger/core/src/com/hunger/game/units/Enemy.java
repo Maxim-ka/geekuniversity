@@ -10,14 +10,12 @@ import static com.hunger.game.units.Food.Type.LEMON;
 public class Enemy extends Eater{
     private Eater hero;
     private float distance;
-    private MiniEnemy miniEnemy;
 
     public Enemy(GameScreen gs){
         super(gs, "bouaaaaah");
         hero = gs.getHero();
         acceleration = getRandomAcceleration();
         active = false;
-        miniEnemy = new MiniEnemy(gs);
     }
 
     public void init(){
@@ -35,12 +33,11 @@ public class Enemy extends Eater{
             }
         }
         getSpeed(dt);
-        setPositionMini();
     }
 
     private void targetSelection(float dt){
         float near = Rules.GLOBAL_WIDTH;
-        if (hero.scale < this.scale){
+        if (hero.isActive() && hero.scale < this.scale){
             tmp.set(hero.position.mulAdd(hero.velocity, dt));
             angleToTarget = tmp.sub(this.position).angle();
         }else{
@@ -77,38 +74,19 @@ public class Enemy extends Eater{
     }
 
     private boolean isDiscovered(GamePoint unit, float dt){
-        float radiusOfDetection = (scale >= Rules.SCALE_EATER) ? width * scale : width * Rules.SCALE_EATER;
-        distance = getDistance(unit);
-        float ratio = (unit == hero && hero.scale / this.scale > 1.1f) ? hero.scale / this.scale : 1.0f;
-        if (distance <= radiusOfDetection + unit.halfWidth * unit.scale * ratio){
-            target.set(unit.position.mulAdd(unit.velocity, dt));
-            tmp.set(target);
-            angleToTarget = tmp.sub(this.position).angle();
-            acceleration += acceleration * ratio * dt;
-            return true;
+        if (unit.isActive()){
+            float radiusOfDetection = (scale >= Rules.SCALE_EATER) ? width * scale : width * Rules.SCALE_EATER;
+            distance = getDistance(unit);
+            float ratio = (unit == hero && hero.scale / this.scale > 1.1f) ? hero.scale / this.scale : 1.0f;
+            if (distance <= radiusOfDetection + unit.halfWidth * unit.scale * ratio){
+                target.set(unit.position.mulAdd(unit.velocity, dt));
+                tmp.set(target);
+                angleToTarget = tmp.sub(this.position).angle();
+                acceleration += acceleration * ratio * dt;
+                return true;
+            }
         }
         acceleration = getRandomAcceleration();
         return false;
-    }
-
-    private void setPositionMini(){
-        if (miniEnemy.active = active){
-            miniEnemy.position.set(gs.getMiniMap().getPositionMini(this.position));
-        }
-    }
-
-    public void render(SpriteBatch batch){
-        super.render(batch);
-        miniEnemy.render(batch);
-    }
-
-    private class MiniEnemy extends GamePoint{
-        MiniEnemy(GameScreen gs) {
-            super(gs, "miniEnemy");
-        }
-
-        public void render(SpriteBatch batch){
-            super.render(batch);
-        }
     }
 }

@@ -7,14 +7,12 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 public class HungerGame extends Game {
 
     private SpriteBatch batch;
-    private GameScreen gameScreen;
 
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
-		gameScreen = new GameScreen(batch);
-		Assets.getInstance().loadAssets();
-		setScreen(gameScreen);
+		ScreenManager.getInstance().init(this, batch);
+		ScreenManager.getInstance().changeScreen(ScreenManager.ScreenType.MENU);
 	}
 
 	@Override
@@ -26,6 +24,5 @@ public class HungerGame extends Game {
 	@Override
 	public void dispose () {
 		batch.dispose();
-		gameScreen.dispose();
 	}
 }

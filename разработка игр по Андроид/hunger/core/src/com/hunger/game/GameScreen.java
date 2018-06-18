@@ -4,14 +4,16 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
-import com.badlogic.gdx.audio.Sound;
-import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.hunger.game.units.Food;
 import com.hunger.game.units.Hero;
 import com.hunger.game.units.MiniMap;
 import com.hunger.game.units.Waste;
@@ -19,7 +21,7 @@ import com.hunger.game.units.Waste;
 public class GameScreen implements Screen {
 
     private static final int NUMBER_FOODS = 90;
-    private static final int NUMBER_HOOLIGANS = 30;
+    private static final int NUMBER_HOOLIGANS = 20;
     private SpriteBatch batch;
     private Hero hero;
     private EnemyEmitter hooligans;
@@ -28,12 +30,15 @@ public class GameScreen implements Screen {
     private MiniMap miniMap;
     private BitmapFont font;
     private FitViewport viewPort;
-    private Camera camera;
+    private OrthographicCamera cameraHero;
     private Music music;
     private Music heroReCreation;
-    private float locationFontX;
-    private float locationFontY;
+    private Stage controlPanel;
     private boolean pause;
+
+    public OrthographicCamera getCameraHero() {
+        return cameraHero;
+    }
 
     public BitmapFont getFont() {
         return font;
@@ -45,14 +50,6 @@ public class GameScreen implements Screen {
 
     public Music getMusic() {
         return music;
-    }
-
-    public MiniMap getMiniMap() {
-        return miniMap;
-    }
-
-    public Camera getCamera() {
-        return camera;
     }
 
     public FitViewport getViewPort() {
@@ -82,10 +79,9 @@ public class GameScreen implements Screen {
     @Override
     public void show() {
         font = Assets.getInstance().getAssetManager().get("gomarice48.ttf");
-        camera = new OrthographicCamera(Rules.WORLD_WIDTH, Rules.WORLD_HEIGHT);
-        viewPort = new FitViewport(Rules.WORLD_WIDTH, Rules.WORLD_HEIGHT, camera);
-        locationFontX = viewPort.getWorldWidth() / 2 - Rules.INDENT;
-        locationFontY = viewPort.getWorldHeight() / 2 - Rules.INDENT;
+        cameraHero = new OrthographicCamera(Rules.WORLD_WIDTH, Rules.WORLD_HEIGHT);
+        viewPort = new FitViewport(Rules.WORLD_WIDTH, Rules.WORLD_HEIGHT, cameraHero);
+        installControlPanel();
         hero = new Hero(this);
         hooligans = new EnemyEmitter(this, NUMBER_HOOLIGANS);
         foods = new FoodEmitter(this, NUMBER_FOODS);
@@ -98,6 +94,45 @@ public class GameScreen implements Screen {
         music.setVolume(0.1f);
     }
 
+    private void installControlPanel(){
+        controlPanel = new Stage(ScreenManager.getInstance().getViewPort(), batch);
+        Gdx.input.setInputProcessor(controlPanel);
+        Skin skin = new Skin(Assets.getInstance().getAtlas());
+
+        Button.ButtonStyle stylePausePlay = new Button.ButtonStyle();
+        stylePausePlay.up = skin.getDrawable("pause");
+        stylePausePlay.over = skin.getDrawable("play");
+        skin.add("stylePausePlay", stylePausePlay);
+
+        Button.ButtonStyle styleExit = new Button.ButtonStyle();
+        styleExit.up = skin.getDrawable("exit");
+        skin.add("styleExit", styleExit);
+
+        Button buttonExitGame = new Button(skin, "styleExit");
+        Button buttonPauseGame = new Button(skin, "stylePausePlay");
+
+        buttonExitGame.setPosition(Rules.WORLD_WIDTH - styleExit.up.getMinWidth() - Rules.INDENT, Rules.WORLD_HEIGHT  - styleExit.up.getMinHeight() - Rules.INDENT);
+        buttonPauseGame.setPosition(Rules.WORLD_WIDTH - stylePausePlay.up.getMinWidth() - Rules.INDENT, Rules.WORLD_HEIGHT - styleExit.up.getMinHeight() - 2 * Rules.INDENT - stylePausePlay.up.getMinHeight());
+
+        controlPanel.addActor(buttonExitGame);
+        controlPanel.addActor(buttonPauseGame);
+
+        buttonPauseGame.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                pause = !pause;
+            }
+        });
+
+        buttonExitGame.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                ScreenManager.getInstance().changeScreen(ScreenManager.ScreenType.MENU);
+            }
+        });
+
+    }
+
     private void onPause(){
         if (Gdx.input.isKeyJustPressed(Input.Keys.P)) {
             pause = !pause;
@@ -106,41 +141,65 @@ public class GameScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        onPause();
-        if (pause){
-            if (heroReCreation.isPlaying()) heroReCreation.pause();
-            music.pause();
-            batch.begin();
-            font.draw(batch, "PAUSE",  camera.position.x - 50.0f,  camera.position.y + font.getCapHeight() / 2);
-            batch.end();
-            return;
-        }
-        if (!music.isPlaying()) music.play();
         update(delta);
         Gdx.gl.glClearColor(1, 1, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        batch.setProjectionMatrix(camera.combined);
+        batch.setProjectionMatrix(cameraHero.combined);
         batch.begin();
         foods.render(batch);
         hero.render(batch);
         hooligans.render(batch);
         waste.render(batch);
-        miniMap.render(batch);
-        font.draw(batch, hero.getScore(),  camera.position.x - locationFontX,  camera.position.y + locationFontY);
         batch.end();
+
+        batch.setProjectionMatrix(ScreenManager.getInstance().getCamera().combined);
+        batch.begin();
+        miniMap.render(batch);
+        font.draw(batch, hero.getScore(), Rules.INDENT, Rules.WORLD_HEIGHT - Rules.INDENT);
+        if (pause){
+            font.draw(batch, "PAUSE",  ScreenManager.getInstance().getCamera().position.x - 50.0f,  ScreenManager.getInstance().getCamera().position.y + font.getCapHeight() / 2);
+        }
+        batch.end();
+        controlPanel.draw();
     }
 
     private void update(float dt){
+        onPause();
+        if (pause){
+            if (heroReCreation.isPlaying()) heroReCreation.pause();
+            music.pause();
+            return;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.F2)){
+            ScreenManager.getInstance().changeScreen(ScreenManager.ScreenType.MENU);
+            return;
+        }
+        controlPanel.act(dt);
+        if (!music.isPlaying()) music.play();
         hero.update(dt);
-        camera.position.set(hero.getPosition().x, hero.getPosition().y, 0);
-        camera.update();
-        hooligans.update(dt);
-        foods.update(dt);
-        waste.update(dt);
-        miniMap.update(dt);
-        checkForEatingFood();
-        checkContact();
-        checkForEatingAnother();
+        cameraHero.position.set(hero.getPosition().x, hero.getPosition().y, 0);
+        cameraHero.update();
+        if (hero.isAtThatLevel()){
+            hooligans.update(dt);
+            foods.update(dt);
+            waste.update(dt);
+            miniMap.update(dt);
+            checkForEatingFood();
+            checkContact();
+            checkForEatingAnother();
+        }else goToLevel();
+    }
+
+    private void goToLevel(){
+        for (int i = 0; i < foods.activeList.size(); i++) {
+            foods.free(i);
+        }
+        for (int i = 0; i < hooligans.activeList.size(); i++) {
+            hooligans.free(i);
+        }
+        for (int i = 0; i < waste.activeList.size(); i++) {
+            waste.free(i);
+        }
     }
 
     private void checkContact(){
@@ -183,7 +242,7 @@ public class GameScreen implements Screen {
             }
         }
         for (int j = 0; j < foods.activeList.size(); j++) {
-            if (hero.isRunOver(foods.activeList.get(j))){
+            if (hero.isActive() && hero.isRunOver(foods.activeList.get(j))){
                 hero.gorge(foods.activeList.get(j));
             }
         }
@@ -197,10 +256,12 @@ public class GameScreen implements Screen {
 
     @Override
     public void pause() {
+        pause = true;
     }
 
     @Override
     public void resume() {
+        pause = false;
     }
 
     @Override
@@ -210,6 +271,7 @@ public class GameScreen implements Screen {
 
     @Override
     public void dispose() {
+        controlPanel.dispose();
         Assets.getInstance().clear();
     }
 }
