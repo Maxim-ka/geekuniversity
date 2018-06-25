@@ -5,15 +5,21 @@ import com.badlogic.gdx.math.MathUtils;
 import com.hunger.game.GameScreen;
 import com.hunger.game.Rules;
 
-public class Waste extends GamePoint{
+import java.io.Serializable;
+
+public class Waste extends GamePoint implements Serializable{
 
     public enum Type {
 
-        CORPSE(0, 15.0f, -0.15f), THORN(1, 10.0f, -0.2f), DETONATION(2, 2.0f, -0.25f);
+        CORPSE(0, 15.0f, -0.25f), THORN(1, 10.0f, -0.25f);
 
         private int textureIndex;
         private float lifetime;
         private float satiety;
+
+        public int getTextureIndex() {
+            return textureIndex;
+        }
 
         Type(int textureIndex, float lifetime, float satiety) {
             this.textureIndex = textureIndex;
@@ -24,6 +30,10 @@ public class Waste extends GamePoint{
 
     private Type type;
     private TextureRegion[] textureRegions;
+
+    public TextureRegion[] getTextureRegions() {
+        return textureRegions;
+    }
 
     public Type getType() {
         return type;
@@ -42,7 +52,7 @@ public class Waste extends GamePoint{
             if (getType() == Type.CORPSE){
                 eater.acceleration = 0.0f;
                 scale += type.satiety;
-                if (scale < 0.0){
+                if (scale < 0){
                     active = false;
                     eater.acceleration = eater.getRandomAcceleration();
                 }
@@ -52,7 +62,7 @@ public class Waste extends GamePoint{
     }
 
     public void init(Type  type, GamePoint another){
-        if (this.type != type) {
+        if (this.type != type || region == null) {
             this.type = type;
             region = textureRegions[type.textureIndex];
             toSize();
@@ -66,14 +76,12 @@ public class Waste extends GamePoint{
 
     public void update(float dt) {
         time -= dt;
-        if (getType() == Type.DETONATION && time <= 1.0f) scale = 1.0f;
+        if (time <= 2.0f && this.getType() == Type.THORN) {
+            gs.getParticle().launch(this.position, 32 + MathUtils.random(-8, 16), MathUtils.random(-360, 360), MathUtils.random(1,3), MathUtils.random(0.75f, 1.0f), MathUtils.random(0.15f, 0.25f), 1,0.823f,0,1,0,0,0,0);
+        }
         if (time <= 0.0f){
-            if (this.getType() == Type.THORN){
-                init(Type.DETONATION, this);
-            }else{
-                this.active = false;
-                return;
-            }
+            this.active = false;
+            return;
         }
         super.update(dt);
         if (getType() == Type.THORN) angle = (angle > 0)? angle + 90.0f * dt : angle - 90.0f * dt;

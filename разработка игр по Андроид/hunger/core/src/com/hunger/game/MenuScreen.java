@@ -2,16 +2,17 @@ package com.hunger.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Button;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+
+import java.io.File;
 
 public class MenuScreen implements Screen {
 
@@ -19,6 +20,9 @@ public class MenuScreen implements Screen {
     private TextureRegion regionPicture;
     private BitmapFont font32;
     private BitmapFont font92;
+    private Skin skin;
+    private Stage stageDialog;
+    private Dialog dialog;
     private Stage stage;
 
     MenuScreen(SpriteBatch batch) {
@@ -32,7 +36,7 @@ public class MenuScreen implements Screen {
         font92 = Assets.getInstance().getAssetManager().get("gomarice92.ttf");
         stage = new Stage(ScreenManager.getInstance().getViewPort(), batch);
         Gdx.input.setInputProcessor(stage);
-        Skin skin = new Skin(Assets.getInstance().getAtlas());
+        skin = new Skin(Assets.getInstance().getAtlas());
         skin.add("font32", font32);
 
         TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle();
@@ -53,7 +57,22 @@ public class MenuScreen implements Screen {
         buttonNewGame.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
+                ScreenManager.getInstance().getGs().setLoadSaveGame(false);
                 ScreenManager.getInstance().changeScreen(ScreenManager.ScreenType.GAME);
+            }
+        });
+
+        buttonLoadGame.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                if (new File("hunger.sav").canRead()) {
+                    ScreenManager.getInstance().getGs().setLoadSaveGame(true);
+                    ScreenManager.getInstance().changeScreen(ScreenManager.ScreenType.GAME);
+                }else{
+                    ScreenManager.getInstance().getGs().setLoadSaveGame(false);
+                    Gdx.input.setInputProcessor(stageDialog);
+                    dialog.show(stageDialog);
+                }
             }
         });
 
@@ -63,7 +82,7 @@ public class MenuScreen implements Screen {
                 Gdx.app.exit();
             }
         });
-
+        generateErrorDialog();
     }
 
     @Override
@@ -76,10 +95,38 @@ public class MenuScreen implements Screen {
         batch.draw(regionPicture,Rules.WORLD_WIDTH / 2 - regionPicture.getRegionWidth() / 2, Rules.WORLD_HEIGHT / 2 - regionPicture.getRegionHeight() / 2);
         batch.end();
         stage.draw();
+        stageDialog.draw();
+    }
+
+    private void generateErrorDialog(){
+        BitmapFont font26 = Assets.getInstance().getAssetManager().get("gomarice26.ttf");
+        skin.add("font26", font26);
+
+        Window.WindowStyle windowStyle = new Window.WindowStyle(font26, Color.RED, skin.getDrawable("windowDialog"));
+
+        Button butOK = new Button(skin.getDrawable("OK"));
+
+        Label label = new Label(" File hunger.sav not found or corrupted! ", skin, "font32", Color.RED);
+
+        stageDialog = new Stage(ScreenManager.getInstance().getViewPort(), batch);
+
+        dialog = new Dialog(" file upload error", windowStyle){
+            @Override
+            public void result(Object object){
+                if ((int)object == 0){
+                    Gdx.input.setInputProcessor(stage);
+                    dialog.hide();
+                }
+            }
+        };
+        dialog.text(label);
+        dialog.button(butOK, 0);
+        dialog.padBottom(5.0f);
     }
 
     private void update(float dt){
         stage.act(dt);
+        stageDialog.act(dt);
     }
 
     @Override
@@ -104,7 +151,8 @@ public class MenuScreen implements Screen {
 
     @Override
     public void dispose() {
-        Assets.getInstance().getAtlas().dispose();
+        stageDialog.dispose();
         stage.dispose();
+        Assets.getInstance().clear();
     }
 }

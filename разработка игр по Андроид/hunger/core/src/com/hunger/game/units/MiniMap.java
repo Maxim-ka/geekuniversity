@@ -7,24 +7,45 @@ import com.hunger.game.Assets;
 import com.hunger.game.GameScreen;
 import com.hunger.game.Rules;
 
-public class MiniMap extends GamePoint {
+import java.io.Serializable;
 
-    private final TextureRegion regionMiniHero = Assets.getInstance().getAtlas().findRegion("miniHero");
-    private final TextureRegion regionMiniEnemy = Assets.getInstance().getAtlas().findRegion("miniEnemy");
-    private final TextureRegion regionMiniGoodFood = Assets.getInstance().getAtlas().findRegion("miniGoodFood");
-    private final int halfWidthMiniHero = regionMiniHero.getRegionWidth() / 2;
-    private final int halfHeightMiniHero = regionMiniHero.getRegionHeight()/2;
-    private final int halfWidthMiniEnemy = regionMiniEnemy.getRegionWidth() / 2;
-    private final int halfHeightMiniEnemy = regionMiniEnemy.getRegionHeight() / 2;
-    private final int halfWidthMiniGoodFood = regionMiniGoodFood.getRegionWidth() / 2;
-    private final int halfHeightMiniGoodFood = regionMiniGoodFood.getRegionHeight() / 2;
-    private GameScreen gs;
+public class MiniMap extends GamePoint implements Serializable {
+
+    private transient TextureRegion regionMiniHero;
+    private transient TextureRegion regionMiniEnemy;
+    private transient TextureRegion regionMiniGoodFood;
+    private int halfWidthMiniHero;
+    private int halfHeightMiniHero;
+    private int halfWidthMiniEnemy;
+    private int halfHeightMiniEnemy;
+    private int halfWidthMiniGoodFood;
+    private int halfHeightMiniGoodFood;
     private float scanRadius;
     private Vector2 tmp;
 
+    public void setRegionMiniHero(TextureRegion regionMiniHero) {
+        this.regionMiniHero = regionMiniHero;
+    }
+
+    public void setRegionMiniEnemy(TextureRegion regionMiniEnemy) {
+        this.regionMiniEnemy = regionMiniEnemy;
+    }
+
+    public void setRegionMiniGoodFood(TextureRegion regionMiniGoodFood) {
+        this.regionMiniGoodFood = regionMiniGoodFood;
+    }
+
     public MiniMap(GameScreen gs) {
         super(gs, "scanerMiniMap");
-        this.gs = gs;
+        regionMiniHero = Assets.getInstance().getAtlas().findRegion("miniHero");
+        regionMiniEnemy = Assets.getInstance().getAtlas().findRegion("miniEnemy");
+        regionMiniGoodFood = Assets.getInstance().getAtlas().findRegion("miniGoodFood");
+        halfWidthMiniHero = regionMiniHero.getRegionWidth() / 2;
+        halfHeightMiniHero = regionMiniHero.getRegionHeight()/2;
+        halfWidthMiniEnemy = regionMiniEnemy.getRegionWidth() / 2;
+        halfHeightMiniEnemy = regionMiniEnemy.getRegionHeight() / 2;
+        halfWidthMiniGoodFood = regionMiniGoodFood.getRegionWidth() / 2;
+        halfHeightMiniGoodFood = regionMiniGoodFood.getRegionHeight() / 2;
         position.set(Rules.WORLD_WIDTH - halfWidth - Rules.INDENT, halfHeight + Rules.INDENT);
         active = true;
         scanRadius = 1000.0f;

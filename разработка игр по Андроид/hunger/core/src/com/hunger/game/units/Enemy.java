@@ -5,9 +5,11 @@ import com.badlogic.gdx.math.MathUtils;
 import com.hunger.game.GameScreen;
 import com.hunger.game.Rules;
 
+import java.io.Serializable;
+
 import static com.hunger.game.units.Food.Type.LEMON;
 
-public class Enemy extends Eater{
+public class Enemy extends Eater implements Serializable{
     private Eater hero;
     private float distance;
 
@@ -20,9 +22,10 @@ public class Enemy extends Eater{
 
     public void init(){
         super.init();
-        scale = scale + MathUtils.random(-0.01f, 0.02f);
+        scale = scale + MathUtils.random(-0.02f, 0.02f);
+        satiety = scale;
     }
-
+    @Override
     public void update(float dt){
         super.update(dt);
         targetSelection(dt);
@@ -70,14 +73,14 @@ public class Enemy extends Eater{
     }
 
     private float turnAround(){
-        return (angleToTarget < 180.0f) ? angleToTarget + 180.0f : angleToTarget - 180.0f;
+        return (angleToTarget < 180.0f) ? angleToTarget + 90.0f : angleToTarget - 90.0f;
     }
 
     private boolean isDiscovered(GamePoint unit, float dt){
         if (unit.isActive()){
             float radiusOfDetection = (scale >= Rules.SCALE_EATER) ? width * scale : width * Rules.SCALE_EATER;
             distance = getDistance(unit);
-            float ratio = (unit == hero && hero.scale / this.scale > 1.1f) ? hero.scale / this.scale : 1.0f;
+            float ratio = (unit == hero && hero.scale / this.scale > 1.0f) ? hero.scale / this.scale : 1.0f;
             if (distance <= radiusOfDetection + unit.halfWidth * unit.scale * ratio){
                 target.set(unit.position.mulAdd(unit.velocity, dt));
                 tmp.set(target);

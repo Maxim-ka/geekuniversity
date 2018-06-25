@@ -1,9 +1,10 @@
 package com.hunger.game;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class ObjectPool<T extends Poolable> {
+public abstract class ObjectPool<T extends Poolable> implements Serializable{
     protected List<T> activeList;
     protected List<T> freeList;
 
@@ -46,6 +47,13 @@ public abstract class ObjectPool<T extends Poolable> {
             if (!activeList.get(i).isActive()) {
                 free(i);
             }
+        }
+    }
+
+    public void toLeaveLevel(){
+        if (activeList.isEmpty()) return;
+        for (int i = 0; i < activeList.size(); i++) {
+            free(i);
         }
     }
 }

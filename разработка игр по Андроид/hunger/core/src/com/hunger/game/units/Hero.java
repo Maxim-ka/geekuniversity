@@ -8,19 +8,34 @@ import com.hunger.game.Assets;
 import com.hunger.game.GameScreen;
 import com.hunger.game.Rules;
 
-public class Hero extends Eater{
+import java.io.Serializable;
+
+public class Hero extends Eater implements Serializable{
 
     private final StringBuilder score = new StringBuilder(Rules.SCORE);
-    private final TextureRegion beaten = Assets.getInstance().getAtlas().findRegion("beaten");
+    private transient TextureRegion beaten;
+    private transient TextureRegion hero;
     private float reCreationTime = 5.0f;
-    private float transitionTime = 4.0f;
+    private float transitionTime = 2.0f;
     private boolean atThatLevel = true;
+    private boolean fatty;
+    private boolean lose;
     private float fat;
-    private int levelConditions;
-    private TextureRegion hero;
 
-    public int getLevelConditions() {
-        return levelConditions;
+    public boolean isFatty() {
+        return fatty;
+    }
+
+    public TextureRegion getHero() {
+        return hero;
+    }
+
+    public void setHero(TextureRegion hero) {
+        this.hero = hero;
+    }
+
+    public void setBeaten(TextureRegion beaten) {
+        this.beaten = beaten;
     }
 
     public boolean isAtThatLevel() {
@@ -33,20 +48,22 @@ public class Hero extends Eater{
 
     public Hero(GameScreen gs) {
         super(gs, "hero");
-        hero = region;
-        position.set(Rules.GLOBAL_WIDTH / 2, Rules.GLOBAL_HEIGHT / 2);
-        acceleration = 300.0f;
-        angle = -90.0f;
-        active = true;
-    }
-
-    public void init(){
         super.init();
-        region = hero;
+        beaten = Assets.getInstance().getAtlas().findRegion("beaten");
         angle = -90.0f;
-        reCreationTime = 5.0f;
+        hero = region;
+        acceleration = 300.0f;
     }
 
+    @Override
+    public void init(){
+        scale = Rules.SCALE_EATER;
+        region = hero;
+        reCreationTime = 5.0f;
+        comeToLevel();
+        angle = -90.0f;
+    }
+    @Override
     public void render(SpriteBatch batch){
         super.render(batch);
         if (!isActive()){
@@ -54,65 +71,88 @@ public class Hero extends Eater{
         }
     }
 
-    private boolean isMovedToLevel(float angle, float zoom, float dt){
+    @Override
+    public void gorge(GamePoint another){
+        if (fat < 0) fat += another.satiety;
+        else scale += another.satiety;
+        if (this.scale <= Rules.MIN_SCALE) this.scale = Rules.MIN_SCALE;
+        another.active = false;
+        if (scale - Rules.SCALE_EATER > Rules.MAX_SCALE){
+            fat += scale - Rules.SCALE_EATER;
+            velocity.setZero();
+            fatty = true;
+        }
+        if (fat >= Rules.MAX_SCALE && scale < Rules.SCALE_EATER){
+            fat -= Rules.MAX_SCALE;
+            velocity.setZero();
+            lose = true;
+        }
+    }
+
+    private boolean isMovedToLevel(float dt){
         atThatLevel = false;
         transitionTime -= dt;
         if (transitionTime > 0.0f) {
-            gs.getCameraHero().rotate(angle * dt);
-            gs.getCameraHero().zoom += zoom * dt;
+            int zoom = (fatty) ? -1 : 1;
+            this.angle += zoom * 180.0f * dt;
+            scale += zoom * 0.25f * dt;
             return true;
         }
         return false;
     }
 
-    private void comeToLevel(float zoom){
-        transitionTime = 4.0f;
-        gs.getCameraHero().zoom += transitionTime * zoom;
-        levelConditions += 5;
+    private void comeToLevel(){
+        gs.toLevel();
+        gs.getLandscape().initMapLevel();
+        super.init();
+        transitionTime = 2.0f;
         atThatLevel = true;
     }
-
+    @Override
     public void update(float dt){
         if (isActive()) {
             super.update(dt);
-            if (halfWidth * scale > width){
-                if (isMovedToLevel(180.0f, 2.0f, dt)) return;
+            if (fatty){
+                if (isMovedToLevel(dt)) return;
                 else{
-                    fat += scale;
                     scale = Rules.SCALE_EATER;
-                    comeToLevel(-2.0f);
+                    comeToLevel();
+                    fatty = false;
                 }
             }
-            if (fat >= width / halfWidth && scale < Rules.SCALE_EATER){
-                if (isMovedToLevel(-180.0f, -0.2f, dt)) return;
+            if (lose){
+                if (isMovedToLevel(dt)) return;
                 else{
-                    scale = width / halfWidth;
-                    fat -= scale;
-                    comeToLevel(0.2f);
+                    scale = Rules.MAX_SCALE;
+                    comeToLevel();
+                    lose = false;
                 }
             }
             score.delete(Rules.SCORE.length(), score.length());
             score.append(Math.round((scale - Rules.SCALE_EATER + fat) * 100));
+            score.append("\nlevel: ").append(gs.getLevel());
         } else{
             reCreationTime -= dt;
             if (reCreationTime > 0.0f){
-                region = beaten;
-                scale = (scale < Rules.SCALE_EATER) ? Rules.SCALE_EATER : scale;
-                angle = -90.0f;
-                fat = 0.0f;
-                velocity.setZero();
-                gs.getMusic().pause();
-                gs.getHeroReCreation().play();
-                gs.getHeroReCreation().setVolume(0.2f);
+                if (region != beaten){
+                    region = beaten;
+                    fat -= scale;
+                    scale = (scale < Rules.SCALE_EATER) ? Rules.SCALE_EATER : scale;
+                    velocity.setZero();
+                    angle = -90.0f;
+                    gs.getMusic().pause();
+                    gs.getHeroReCreation().play();
+                    gs.getHeroReCreation().setVolume(0.2f);
+                    atThatLevel = false;
+                }
                 return;
             }
             init();
         }
         if (isAtThatLevel() && (Gdx.input.isTouched() || Gdx.input.isKeyPressed(Input.Keys.SPACE))){
             target.set(Gdx.input.getX(), Gdx.input.getY());
-            gs.getViewPort().unproject(target);
-            tmp.set(target);
-            angleToTarget = tmp.sub(position).angle();
+            gs.getViewPortHero().unproject(target);
+            angleToTarget = target.sub(position).angle();
             getSpeed(dt);
         }
     }

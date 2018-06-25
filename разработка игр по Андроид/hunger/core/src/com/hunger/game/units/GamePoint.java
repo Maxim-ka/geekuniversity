@@ -10,10 +10,12 @@ import com.hunger.game.GameScreen;
 import com.hunger.game.Poolable;
 import com.hunger.game.Rules;
 
-public abstract class GamePoint implements Poolable {
+import java.io.Serializable;
 
-    GameScreen gs;
-    TextureRegion region;
+public abstract class GamePoint implements Poolable, Serializable {
+
+    transient GameScreen gs;
+    transient TextureRegion region;
     Vector2 position;
     Vector2 velocity;
     float scale;
@@ -24,6 +26,18 @@ public abstract class GamePoint implements Poolable {
     int halfWidth;
     int halfHeight;
     boolean active;
+
+    public void setScale(float scale) {
+        this.scale = scale;
+    }
+
+    public void setGs(GameScreen gs) {
+        this.gs = gs;
+    }
+
+    public void setRegion(TextureRegion region) {
+        this.region = region;
+    }
 
     public Vector2 getPosition() {
         return position;
@@ -61,15 +75,20 @@ public abstract class GamePoint implements Poolable {
     }
 
     public void init(){
-        position.set(getCoordinate(Rules.GLOBAL_WIDTH), getCoordinate(Rules.GLOBAL_HEIGHT));
+        float x, y;
+        do{
+            x = getCoordinate(Rules.GLOBAL_WIDTH);
+            y = getCoordinate(Rules.GLOBAL_HEIGHT);
+        }while (!gs.getLandscape().isCellEmpty(x, y, halfWidth * scale));
+        position.set(x, y);
         active = true;
     }
 
     public void update(float dt){
-        if (position.x < -halfWidth) position.x = Rules.GLOBAL_WIDTH + halfWidth;
-        if (position.y < -halfHeight) position.y = Rules.GLOBAL_HEIGHT + halfHeight;
-        if (position.x > Rules.GLOBAL_WIDTH + halfWidth) position.x = -halfWidth;
-        if (position.y > Rules.GLOBAL_HEIGHT + halfHeight) position.y = -halfHeight;
+        if (position.x < 0) position.x = Rules.GLOBAL_WIDTH;
+        if (position.y < 0) position.y = Rules.GLOBAL_HEIGHT;
+        if (position.x > Rules.GLOBAL_WIDTH) position.x = 0;
+        if (position.y > Rules.GLOBAL_HEIGHT) position.y = 0;
     }
 
     private int getCoordinate(int limit){

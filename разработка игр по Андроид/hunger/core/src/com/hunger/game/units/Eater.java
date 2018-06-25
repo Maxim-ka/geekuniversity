@@ -5,7 +5,9 @@ import com.badlogic.gdx.math.Vector2;
 import com.hunger.game.GameScreen;
 import com.hunger.game.Rules;
 
-public abstract class Eater extends GamePoint {
+import java.io.Serializable;
+
+public abstract class Eater extends GamePoint implements Serializable {
 
     float acceleration;
     float angleToTarget;
@@ -17,13 +19,27 @@ public abstract class Eater extends GamePoint {
         tmp = new Vector2();
         target = new Vector2();
         scale = Rules.SCALE_EATER;
-        satiety = 0.1f;
     }
 
+    @Override
     public void update(float dt){
         super.update(dt);
         velocity.scl(0.97f);
-        position.mulAdd(velocity, dt);
+        float velLen = velocity.len() * dt;
+        tmp.set(velocity);
+        tmp.nor();
+        float nX = tmp.x;
+        float nY = tmp.y;
+        for (int i = 0; i < velLen; i++) {
+            tmp.set(position.x + nX, position.y);
+            if (gs.getLandscape().isCellEmpty(tmp.x, tmp.y, halfWidth * scale)){
+                position.set(tmp);
+            }
+            tmp.set(position.x, position.y + nY);
+            if (gs.getLandscape().isCellEmpty(tmp.x, tmp.y, halfWidth * scale)){
+                position.set(tmp);
+            }
+        }
     }
 
     void getSpeed(float dt){
@@ -32,11 +48,6 @@ public abstract class Eater extends GamePoint {
         if (angle < 0.0f) angle += 360.0f;
         if (angle > 360.0f) angle -= 360.0f;
         velocity.add(acceleration * (float) Math.cos(Math.toRadians(angle)) * dt, acceleration * (float) Math.sin(Math.toRadians(angle)) * dt);
-    }
-
-    public void init(){
-        super.init();
-        scale = Rules.SCALE_EATER;
     }
 
     public void smite(Eater another){
@@ -49,6 +60,7 @@ public abstract class Eater extends GamePoint {
     public void gorge(GamePoint another){
         this.scale += another.satiety;
         if (this.scale <= Rules.MIN_SCALE) this.scale = Rules.MIN_SCALE;
+        this.satiety = this.scale;
         another.active = false;
     }
 

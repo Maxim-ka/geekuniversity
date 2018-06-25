@@ -10,7 +10,7 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 public class ScreenManager {
 
     enum ScreenType{
-        MENU, GAME;
+        MENU, GAME
     }
 
     private static ScreenManager ourInstance = new ScreenManager();
@@ -28,6 +28,10 @@ public class ScreenManager {
     private SpriteBatch batch;
     private FitViewport viewPort;
     private Camera camera;
+
+    public GameScreen getGs() {
+        return gs;
+    }
 
     public Camera getCamera() {
         return camera;
@@ -62,8 +66,7 @@ public class ScreenManager {
         Assets.getInstance().clear();
         Gdx.input.setInputProcessor(null);
         if (screen != null) screen.dispose();
-
-//        batch.setProjectionMatrix(camera.combined);
+        batch.setProjectionMatrix(camera.combined);
         game.setScreen(ls);
         switch (type){
             case MENU:
