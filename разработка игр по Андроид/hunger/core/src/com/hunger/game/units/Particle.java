@@ -3,9 +3,7 @@ package com.hunger.game.units;
 import com.badlogic.gdx.math.Vector2;
 import com.hunger.game.Rules;
 
-import java.io.Serializable;
-
-public class Particle extends GamePoint implements Serializable {
+public class Particle extends GamePoint {
 
     private float r1, g1, b1, a1;
     private float r2, g2, b2, a2;

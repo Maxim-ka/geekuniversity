@@ -5,9 +5,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.hunger.game.units.Particle;
 
-import java.io.Serializable;
-
-public class ParticleEmitter extends ObjectPool<Particle> implements Serializable{
+public class ParticleEmitter extends ObjectPool<Particle>{
 
     ParticleEmitter(int number) {
         addObjectsToFreeList(number);
@@ -78,5 +76,14 @@ public class ParticleEmitter extends ObjectPool<Particle> implements Serializabl
     @Override
     protected Particle newObject() {
         return new Particle();
+    }
+
+    public void setLoadedParticleEmitter(){
+        for (int i = 0; i < freeList.size(); i++) {
+            freeList.get(i).setRegion(Assets.getInstance().getAtlas().findRegion("particleDetonation"));
+        }
+        for (int i = 0; i < activeList.size(); i++) {
+            activeList.get(i).setRegion(Assets.getInstance().getAtlas().findRegion("particleDetonation"));
+        }
     }
 }

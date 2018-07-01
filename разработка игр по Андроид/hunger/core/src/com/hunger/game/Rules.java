@@ -10,6 +10,8 @@ public class Rules {
     public static final float MIN_SCALE = 0.25f;
     public static final float SCALE_EATER = 0.5f;
     public static final float INDENT = 20.0f;
-    public static final String SCORE = "Score: ";
     public static final float MAX_SCALE = 1.0f;
+    public static final String PAUSE = "pause";
+    public static final String PLAY = "play";
+    public static final String SAVE_FILE = "save.hunger";
 }

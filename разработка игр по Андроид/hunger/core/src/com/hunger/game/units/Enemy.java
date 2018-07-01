@@ -1,15 +1,14 @@
 package com.hunger.game.units;
 
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+
 import com.badlogic.gdx.math.MathUtils;
+import com.hunger.game.Assets;
 import com.hunger.game.GameScreen;
 import com.hunger.game.Rules;
 
-import java.io.Serializable;
-
 import static com.hunger.game.units.Food.Type.LEMON;
 
-public class Enemy extends Eater implements Serializable{
+public class Enemy extends Eater{
     private Eater hero;
     private float distance;
 
@@ -22,7 +21,7 @@ public class Enemy extends Eater implements Serializable{
 
     public void init(){
         super.init();
-        scale = scale + MathUtils.random(-0.02f, 0.02f);
+        scale = Rules.SCALE_EATER + MathUtils.random(-0.05f, 0.05f);
         satiety = scale;
     }
     @Override
@@ -91,5 +90,10 @@ public class Enemy extends Eater implements Serializable{
         }
         acceleration = getRandomAcceleration();
         return false;
+    }
+
+    public  void reload(GameScreen gs){
+        this.gs = gs;
+        region = Assets.getInstance().getAtlas().findRegion("bouaaaaah");
     }
 }

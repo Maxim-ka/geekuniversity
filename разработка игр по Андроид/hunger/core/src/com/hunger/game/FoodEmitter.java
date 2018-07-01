@@ -7,21 +7,13 @@ import com.hunger.game.units.Food;
 
 import java.io.Serializable;
 
-public class FoodEmitter extends ObjectPool<Food> implements Serializable {
+public class FoodEmitter extends ObjectPool<Food>{
 
     private final String[] textureName = {"pizza", "lemon", "doughnut"};
-    private final TextureRegion[] regions = new TextureRegion[textureName.length];
+    private transient TextureRegion[] regions = new TextureRegion[textureName.length];
     private transient GameScreen gs;
     private int number;
     private float time;
-
-    public TextureRegion[] getRegions() {
-        return regions;
-    }
-
-    public void setGs(GameScreen gs) {
-        this.gs = gs;
-    }
 
     FoodEmitter(GameScreen gs, int number){
         this.gs = gs;
@@ -30,7 +22,7 @@ public class FoodEmitter extends ObjectPool<Food> implements Serializable {
         addObjectsToFreeList(number);
     }
 
-    public void toRegions(){
+    private void toRegions(){
         for (int i = 0; i < regions.length; i++) {
             regions[i] = Assets.getInstance().getAtlas().findRegion(textureName[i]);
         }
@@ -67,5 +59,18 @@ public class FoodEmitter extends ObjectPool<Food> implements Serializable {
     @Override
     protected Food newObject() {
         return new Food(gs, regions);
+    }
+
+    public void setLoadedFoodEmitter(GameScreen gs){
+        this.gs = gs;
+        regions = new TextureRegion[textureName.length];
+        toRegions();
+        for (int i = 0; i < freeList.size(); i++) {
+            freeList.get(i).reload(gs, regions);
+        }
+        for (int i = 0; i < activeList.size(); i++) {
+            activeList.get(i).reload(gs,regions);
+            activeList.get(i).reloadTextureRegion();
+        }
     }
 }

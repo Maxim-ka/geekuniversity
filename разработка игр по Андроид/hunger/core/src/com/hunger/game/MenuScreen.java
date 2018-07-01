@@ -65,7 +65,7 @@ public class MenuScreen implements Screen {
         buttonLoadGame.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                if (new File("hunger.sav").canRead()) {
+                if (Gdx.files.local(Rules.SAVE_FILE).exists()) {
                     ScreenManager.getInstance().getGs().setLoadSaveGame(true);
                     ScreenManager.getInstance().changeScreen(ScreenManager.ScreenType.GAME);
                 }else{
@@ -106,7 +106,7 @@ public class MenuScreen implements Screen {
 
         Button butOK = new Button(skin.getDrawable("OK"));
 
-        Label label = new Label(" File hunger.sav not found or corrupted! ", skin, "font32", Color.RED);
+        Label label = new Label(String.format(" File %s not found or corrupted! ", Rules.SAVE_FILE), skin, "font32", Color.RED);
 
         stageDialog = new Stage(ScreenManager.getInstance().getViewPort(), batch);
 

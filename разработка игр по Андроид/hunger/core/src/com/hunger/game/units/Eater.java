@@ -7,7 +7,7 @@ import com.hunger.game.Rules;
 
 import java.io.Serializable;
 
-public abstract class Eater extends GamePoint implements Serializable {
+public abstract class Eater extends GamePoint {
 
     float acceleration;
     float angleToTarget;

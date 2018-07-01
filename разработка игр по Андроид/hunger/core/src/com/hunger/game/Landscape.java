@@ -15,18 +15,6 @@ public class Landscape implements Serializable {
     private final byte[][] data;
     private transient GameScreen gs;
 
-    public void setGs(GameScreen gs) {
-        this.gs = gs;
-    }
-
-    public void setFlooring(TextureRegion flooring) {
-        this.flooring = flooring;
-    }
-
-    public void setTree(TextureRegion tree) {
-        this.tree = tree;
-    }
-
     Landscape(GameScreen gs) {
         this.gs = gs;
         flooring = Assets.getInstance().getAtlas().findRegion("embossedTile");
@@ -74,5 +62,11 @@ public class Landscape implements Serializable {
             if (data[cellX][cellY] == 1) return false;
         }
         return true;
+    }
+
+    public void setLoadedLandscape(GameScreen gs){
+        flooring = Assets.getInstance().getAtlas().findRegion("embossedTile");
+        tree = Assets.getInstance().getAtlas().findRegion("treeInBox");
+        this.gs = gs;
     }
 }

@@ -7,7 +7,7 @@ import com.hunger.game.GameScreen;
 
 import java.io.Serializable;
 
-public class Food extends GamePoint implements Serializable{
+public class Food extends GamePoint{
 
     public enum Type {
         PIZZA(0, 0.05f), LEMON(1, -0.1f),
@@ -15,10 +15,6 @@ public class Food extends GamePoint implements Serializable{
 
         private int textureIndex;
         private float satiety;
-
-        public int getTextureIndex() {
-            return textureIndex;
-        }
 
         Type(int textureIndex, float satiety) {
             this.textureIndex = textureIndex;
@@ -28,11 +24,7 @@ public class Food extends GamePoint implements Serializable{
 
     private Vector2 tmp = new Vector2();
     private Type type;
-    private TextureRegion[] textureRegions;
-
-    public TextureRegion[] getTextureRegions() {
-        return textureRegions;
-    }
+    private transient TextureRegion[] textureRegions;
 
     public Type getType() {
         return type;
@@ -66,5 +58,14 @@ public class Food extends GamePoint implements Serializable{
             }else velocity.set(MathUtils.random(-90.0f, 90.0f), MathUtils.random(-90.0f, 90.0f));
         }while (setPos);
         angle = (velocity.x < 0) ? angle + 90.0f * dt : angle - 90.0f * dt;
+    }
+
+    public void reload(GameScreen gs, TextureRegion[] regions){
+        this.gs = gs;
+        textureRegions = regions;
+    }
+
+    public void reloadTextureRegion(){
+        region = textureRegions[type.textureIndex];
     }
 }

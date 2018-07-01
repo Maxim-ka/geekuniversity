@@ -7,16 +7,8 @@ import com.hunger.game.units.Waste;
 public class WasteEmitter extends ObjectPool<Waste> {
 
     private final String[] textureName = {"corpse", "thorn"};
-    private final TextureRegion[] regions = new TextureRegion[textureName.length];
+    private transient TextureRegion[] regions = new TextureRegion[textureName.length];
     private transient GameScreen gs;
-
-    public void setGs(GameScreen gs) {
-        this.gs = gs;
-    }
-
-    public TextureRegion[] getRegions() {
-        return regions;
-    }
 
     WasteEmitter(GameScreen gs){
         this.gs = gs;
@@ -24,7 +16,7 @@ public class WasteEmitter extends ObjectPool<Waste> {
         addObjectsToFreeList(gs.getHooligans().freeList.size() * gs.getFoods().freeList.size());
     }
 
-    public void toRegions(){
+    private void toRegions(){
         for (int i = 0; i < regions.length; i++) {
             regions[i] = Assets.getInstance().getAtlas().findRegion(textureName[i]);
         }
@@ -46,5 +38,18 @@ public class WasteEmitter extends ObjectPool<Waste> {
     @Override
     protected Waste newObject() {
         return new Waste(gs, regions);
+    }
+
+    public void setLoadedWaste(GameScreen gs){
+        regions = new TextureRegion[textureName.length];
+        toRegions();
+        this.gs = gs;
+        for (int i = 0; i < freeList.size(); i++) {
+            freeList.get(i).reload(gs, regions);
+        }
+        for (int i = 0; i < activeList.size(); i++) {
+            activeList.get(i).reload(gs, regions);
+            activeList.get(i).reloadTextureRegion();
+        }
     }
 }

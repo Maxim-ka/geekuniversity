@@ -5,15 +5,11 @@ import com.hunger.game.units.Enemy;
 
 import java.io.Serializable;
 
-public class EnemyEmitter extends ObjectPool<Enemy> implements Serializable{
+public class EnemyEmitter extends ObjectPool<Enemy>{
 
     private transient GameScreen gs;
     private int number;
     private float time;
-
-    public void setGs(GameScreen gs) {
-        this.gs = gs;
-    }
 
     EnemyEmitter(GameScreen gs, int number){
         this.gs = gs;
@@ -45,5 +41,15 @@ public class EnemyEmitter extends ObjectPool<Enemy> implements Serializable{
     @Override
     protected Enemy newObject() {
         return new Enemy(gs);
+    }
+
+    public void setLoadedEnemyEmitter(GameScreen gs){
+        this.gs = gs;
+        for (int i = 0; i < freeList.size(); i++) {
+            freeList.get(i).reload(gs);
+        }
+        for (int i = 0; i < activeList.size(); i++) {
+            activeList.get(i).reload(gs);
+        }
     }
 }

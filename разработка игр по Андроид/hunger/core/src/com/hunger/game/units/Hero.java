@@ -8,11 +8,11 @@ import com.hunger.game.Assets;
 import com.hunger.game.GameScreen;
 import com.hunger.game.Rules;
 
-import java.io.Serializable;
+public class Hero extends Eater{
 
-public class Hero extends Eater implements Serializable{
-
-    private final StringBuilder score = new StringBuilder(Rules.SCORE);
+    private static final String LEVEL = "level: ";
+    private static final String SCORE = "\nScore: ";
+    private final StringBuilder score = new StringBuilder(LEVEL);
     private transient TextureRegion beaten;
     private transient TextureRegion hero;
     private float reCreationTime = 5.0f;
@@ -24,18 +24,6 @@ public class Hero extends Eater implements Serializable{
 
     public boolean isFatty() {
         return fatty;
-    }
-
-    public TextureRegion getHero() {
-        return hero;
-    }
-
-    public void setHero(TextureRegion hero) {
-        this.hero = hero;
-    }
-
-    public void setBeaten(TextureRegion beaten) {
-        this.beaten = beaten;
     }
 
     public boolean isAtThatLevel() {
@@ -128,9 +116,8 @@ public class Hero extends Eater implements Serializable{
                     lose = false;
                 }
             }
-            score.delete(Rules.SCORE.length(), score.length());
-            score.append(Math.round((scale - Rules.SCALE_EATER + fat) * 100));
-            score.append("\nlevel: ").append(gs.getLevel());
+            score.delete(LEVEL.length(), score.length());
+            score.append(gs.getLevel()).append(SCORE).append(Math.round((scale - Rules.SCALE_EATER + fat) * 100));
         } else{
             reCreationTime -= dt;
             if (reCreationTime > 0.0f){
@@ -155,5 +142,12 @@ public class Hero extends Eater implements Serializable{
             angleToTarget = target.sub(position).angle();
             getSpeed(dt);
         }
+    }
+
+    public void setLoadedHero(GameScreen gs){
+        beaten = Assets.getInstance().getAtlas().findRegion("beaten");
+        hero = Assets.getInstance().getAtlas().findRegion("hero");
+        region = hero;
+        this.gs = gs;
     }
 }

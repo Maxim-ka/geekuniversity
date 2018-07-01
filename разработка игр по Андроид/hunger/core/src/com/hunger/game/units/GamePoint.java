@@ -31,10 +31,6 @@ public abstract class GamePoint implements Poolable, Serializable {
         this.scale = scale;
     }
 
-    public void setGs(GameScreen gs) {
-        this.gs = gs;
-    }
-
     public void setRegion(TextureRegion region) {
         this.region = region;
     }

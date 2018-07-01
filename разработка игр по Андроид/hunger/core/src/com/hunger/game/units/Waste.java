@@ -7,7 +7,7 @@ import com.hunger.game.Rules;
 
 import java.io.Serializable;
 
-public class Waste extends GamePoint implements Serializable{
+public class Waste extends GamePoint{
 
     public enum Type {
 
@@ -17,10 +17,6 @@ public class Waste extends GamePoint implements Serializable{
         private float lifetime;
         private float satiety;
 
-        public int getTextureIndex() {
-            return textureIndex;
-        }
-
         Type(int textureIndex, float lifetime, float satiety) {
             this.textureIndex = textureIndex;
             this.lifetime = lifetime;
@@ -29,11 +25,7 @@ public class Waste extends GamePoint implements Serializable{
     }
 
     private Type type;
-    private TextureRegion[] textureRegions;
-
-    public TextureRegion[] getTextureRegions() {
-        return textureRegions;
-    }
+    private transient TextureRegion[] textureRegions;
 
     public Type getType() {
         return type;
@@ -85,5 +77,14 @@ public class Waste extends GamePoint implements Serializable{
         }
         super.update(dt);
         if (getType() == Type.THORN) angle = (angle > 0)? angle + 90.0f * dt : angle - 90.0f * dt;
+    }
+
+    public void reload(GameScreen gs, TextureRegion[] regions){
+        this.gs = gs;
+        textureRegions = regions;
+    }
+
+    public void reloadTextureRegion(){
+        region = textureRegions[type.textureIndex];
     }
 }

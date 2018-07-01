@@ -1,6 +1,7 @@
 package com.hunger.game;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Camera;
@@ -119,6 +120,8 @@ public class GameScreen implements Screen {
         skin = new Skin(Assets.getInstance().getAtlas());
         installControlPanel();
         generateOutputDialog();
+        InputMultiplexer inputMultiplexer = new InputMultiplexer(controlPanel, stageDialog);
+        Gdx.input.setInputProcessor(inputMultiplexer);
         heroReCreation = Assets.getInstance().getAssetManager().get("to_be_continued.mp3");
         music = Assets.getInstance().getAssetManager().get("Beverly_hills_COP_1984.mp3");
         music.setLooping(true);
@@ -129,7 +132,6 @@ public class GameScreen implements Screen {
     private void generateOutputDialog(){
         BitmapFont font26 = Assets.getInstance().getAssetManager().get("gomarice26.ttf");
         BitmapFont font32 = Assets.getInstance().getAssetManager().get("gomarice32.ttf");
-
         skin.add("font26", font26);
         skin.add("font32", font32);
 
@@ -154,8 +156,8 @@ public class GameScreen implements Screen {
                 exit = false;
                 pause = false;
                 if ((int)object == 0){
-                    Gdx.input.setInputProcessor(controlPanel);
                     dialog.hide();
+                    selectRenderingPause();
                     return;
                 }
                 if ((int)object == 1){
@@ -175,25 +177,13 @@ public class GameScreen implements Screen {
     }
 
     private void saveGame(){
-        try(ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("hunger.sav"))) {
+        try(ObjectOutputStream save = new ObjectOutputStream(Gdx.files.local(Rules.SAVE_FILE).write(false))) {
             save.writeInt(level);
-            save.flush();
             save.writeObject(landscape);
-            save.flush();
             save.writeObject(hero);
-            save.flush();
-            for (int i = 0; i < foods.getRegions().length; i++) {
-                foods.getRegions()[i] = null;
-            }
             save.writeObject(foods);
-            save.flush();
             save.writeObject(hooligans);
-            save.flush();
-            for (int i = 0; i < waste.getRegions().length; i++) {
-                waste.getRegions()[i] = null;
-            }
             save.writeObject(waste);
-            save.flush();
             save.writeObject(particle);
             save.flush();
         }catch (IOException e) {
@@ -202,54 +192,20 @@ public class GameScreen implements Screen {
     }
 
     private void loadGame(){
-        try (ObjectInputStream load = new ObjectInputStream(new FileInputStream("hunger.sav"))){
+        try (ObjectInputStream load = new ObjectInputStream(Gdx.files.local(Rules.SAVE_FILE).read())){
             level = load.readInt();
             landscape = (Landscape) load.readObject();
-            landscape.setFlooring(Assets.getInstance().getAtlas().findRegion("embossedTile"));
-            landscape.setTree(Assets.getInstance().getAtlas().findRegion("treeInBox"));
-            landscape.setGs(this);
+            landscape.setLoadedLandscape(this);
             hero = (Hero) load.readObject();
-            hero.setBeaten(Assets.getInstance().getAtlas().findRegion("beaten"));
-            hero.setHero(Assets.getInstance().getAtlas().findRegion("hero"));
-            hero.setRegion(hero.getHero());
-            hero.setGs(this);
+            hero.setLoadedHero(this);
             foods = (FoodEmitter) load.readObject();
-            foods.toRegions();
-            foods.setGs(this);
-            for (int i = 0; i < foods.freeList.size(); i++) {
-                foods.freeList.get(i).setGs(this);
-            }
-            for (int i = 0; i < foods.activeList.size(); i++) {
-                foods.activeList.get(i).setRegion(foods.activeList.get(i).getTextureRegions()[foods.activeList.get(i).getType().getTextureIndex()]);
-                foods.activeList.get(i).setGs(this);
-            }
+            foods.setLoadedFoodEmitter(this);
             hooligans = (EnemyEmitter) load.readObject();
-            hooligans.setGs(this);
-            for (int i = 0; i < hooligans.freeList.size(); i++) {
-                hooligans.freeList.get(i).setGs(this);
-                hooligans.freeList.get(i).setRegion(Assets.getInstance().getAtlas().findRegion("bouaaaaah"));
-            }
-            for (int i = 0; i < hooligans.activeList.size(); i++) {
-                hooligans.activeList.get(i).setGs(this);
-                hooligans.activeList.get(i).setRegion(Assets.getInstance().getAtlas().findRegion("bouaaaaah"));
-            }
+            hooligans.setLoadedEnemyEmitter(this);
             waste = (WasteEmitter) load.readObject();
-            waste.toRegions();
-            waste.setGs(this);
-            for (int i = 0; i < waste.freeList.size(); i++) {
-                waste.freeList.get(i).setGs(this);
-            }
-            for (int i = 0; i < waste.activeList.size(); i++) {
-                waste.activeList.get(i).setRegion(waste.activeList.get(i).getTextureRegions()[waste.activeList.get(i).getType().getTextureIndex()]);
-                waste.activeList.get(i).setGs(this);
-            }
+            waste.setLoadedWaste(this);
             particle = (ParticleEmitter) load.readObject();
-            for (int i = 0; i < particle.freeList.size(); i++) {
-                particle.freeList.get(i).setRegion(Assets.getInstance().getAtlas().findRegion("particleDetonation"));
-            }
-            for (int i = 0; i < particle.activeList.size(); i++) {
-                particle.activeList.get(i).setRegion(Assets.getInstance().getAtlas().findRegion("particleDetonation"));
-            }
+            particle.setLoadedParticleEmitter();
         } catch (ClassNotFoundException | IOException e) {
             e.printStackTrace();
         }
@@ -257,11 +213,10 @@ public class GameScreen implements Screen {
 
     private void installControlPanel(){
         controlPanel = new Stage(ScreenManager.getInstance().getViewPort(), batch);
-        Gdx.input.setInputProcessor(controlPanel);
 
         Button.ButtonStyle stylePausePlay = new Button.ButtonStyle();
-        if (loadSaveGame)stylePausePlay.up = skin.getDrawable("play");
-        else stylePausePlay.up = skin.getDrawable("pause");
+        if (loadSaveGame)stylePausePlay.up = skin.getDrawable(Rules.PLAY);
+        else stylePausePlay.up = skin.getDrawable(Rules.PAUSE);
         skin.add("stylePausePlay", stylePausePlay);
 
         Button.ButtonStyle styleExit = new Button.ButtonStyle();
@@ -281,8 +236,7 @@ public class GameScreen implements Screen {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 pause = !pause;
-                if (pause)stylePausePlay.up = skin.getDrawable("play");
-                else stylePausePlay.up = skin.getDrawable("pause");
+                selectRenderingPause();
             }
         });
 
@@ -292,7 +246,6 @@ public class GameScreen implements Screen {
                 exit = true;
                 pause = true;
                 dialog.show(stageDialog);
-                Gdx.input.setInputProcessor(stageDialog);
             }
         });
     }
@@ -319,7 +272,7 @@ public class GameScreen implements Screen {
         miniMap.render(batch);
         font.draw(batch, hero.getScore(), Rules.INDENT, Rules.WORLD_HEIGHT - Rules.INDENT);
         if (pause){
-            font.draw(batch, "PAUSE",  ScreenManager.getInstance().getCamera().position.x - 50.0f,  ScreenManager.getInstance().getCamera().position.y + font.getCapHeight() / 2);
+            font.draw(batch, Rules.PAUSE,  ScreenManager.getInstance().getCamera().position.x - 50.0f,  ScreenManager.getInstance().getCamera().position.y + font.getCapHeight() / 2);
         }
         batch.end();
     }
@@ -436,13 +389,18 @@ public class GameScreen implements Screen {
         pause = true;
     }
 
+    private void selectRenderingPause(){
+        Button buttonPause = (Button) controlPanel.getActors().get(1);
+        Button.ButtonStyle style = buttonPause.getStyle();
+        if (pause)style.up = skin.getDrawable(Rules.PLAY);
+        else style.up = skin.getDrawable(Rules.PAUSE);
+        buttonPause.setStyle(style);
+    }
+
     @Override
     public void resume() {
         pause = true;
-        Button buttonPause = (Button) controlPanel.getActors().get(1);
-        Button.ButtonStyle style = buttonPause.getStyle();
-        style.up = skin.getDrawable("play");
-        buttonPause.setStyle(style);
+        selectRenderingPause();
     }
 
     @Override
