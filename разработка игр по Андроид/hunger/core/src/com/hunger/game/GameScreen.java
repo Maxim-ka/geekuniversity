@@ -10,10 +10,13 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.utils.DataInput;
+import com.badlogic.gdx.utils.DataOutput;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.hunger.game.units.Hero;
 import com.hunger.game.units.MiniMap;
@@ -26,6 +29,7 @@ public class GameScreen implements Screen {
     private static final int NUMBER_FOODS = 90;
     private static final int NUMBER_HOOLIGANS = 30;
     private static final int NUMBER_PARTICLE = 200;
+    private static final int QUANTITY_OF_LIFE = 1;
     private SpriteBatch batch;
     private boolean loadSaveGame;
     private Landscape landscape;
@@ -34,7 +38,9 @@ public class GameScreen implements Screen {
     private FoodEmitter foods;
     private WasteEmitter waste;
     private ParticleEmitter particle;
+    private TextureRegion life;
     private MiniMap miniMap;
+    private Joystick joystick;
     private BitmapFont font;
     private FitViewport viewPortHero;
     private Camera cameraHero;
@@ -47,6 +53,16 @@ public class GameScreen implements Screen {
     private boolean pause;
     private boolean exit;
     private int level;
+    private int live;
+    private int score;
+
+    public int getScore() {
+        return score;
+    }
+
+    public int getLive() {
+        return live;
+    }
 
     public ParticleEmitter getParticle() {
         return particle;
@@ -105,22 +121,25 @@ public class GameScreen implements Screen {
         cameraHero = new OrthographicCamera(Rules.WORLD_WIDTH, Rules.WORLD_HEIGHT);
         viewPortHero = new FitViewport(Rules.WORLD_WIDTH, Rules.WORLD_HEIGHT, cameraHero);
         font = Assets.getInstance().getAssetManager().get("gomarice48.ttf");
+        joystick = new Joystick();
         if (loadSaveGame){
             loadGame();
         }else {
             level = 0;
+            live = QUANTITY_OF_LIFE;
             landscape = new Landscape(this);
-            hero = new Hero(this);
+            hero = new Hero(this, joystick);
             foods = new FoodEmitter(this, NUMBER_FOODS);
             hooligans = new EnemyEmitter(this, NUMBER_HOOLIGANS);
             waste = new WasteEmitter(this);
             particle = new ParticleEmitter(NUMBER_PARTICLE);
         }
+        life = Assets.getInstance().getAtlas().findRegion("life");
         miniMap = new MiniMap(this);
         skin = new Skin(Assets.getInstance().getAtlas());
         installControlPanel();
         generateOutputDialog();
-        InputMultiplexer inputMultiplexer = new InputMultiplexer(controlPanel, stageDialog);
+        InputMultiplexer inputMultiplexer = new InputMultiplexer(joystick, controlPanel, stageDialog);
         Gdx.input.setInputProcessor(inputMultiplexer);
         heroReCreation = Assets.getInstance().getAssetManager().get("to_be_continued.mp3");
         music = Assets.getInstance().getAssetManager().get("Beverly_hills_COP_1984.mp3");
@@ -161,11 +180,13 @@ public class GameScreen implements Screen {
                     return;
                 }
                 if ((int)object == 1){
+                    recordScore();
                     ScreenManager.getInstance().changeScreen(ScreenManager.ScreenType.MENU);
                     return;
                 }
                 if ((int)object == 2){
                     saveGame();
+                    recordScore();
                     ScreenManager.getInstance().changeScreen(ScreenManager.ScreenType.MENU);
                 }
             }
@@ -179,6 +200,7 @@ public class GameScreen implements Screen {
     private void saveGame(){
         try(ObjectOutputStream save = new ObjectOutputStream(Gdx.files.local(Rules.SAVE_FILE).write(false))) {
             save.writeInt(level);
+            save.writeInt(live);
             save.writeObject(landscape);
             save.writeObject(hero);
             save.writeObject(foods);
@@ -194,10 +216,11 @@ public class GameScreen implements Screen {
     private void loadGame(){
         try (ObjectInputStream load = new ObjectInputStream(Gdx.files.local(Rules.SAVE_FILE).read())){
             level = load.readInt();
+            live = load.readInt();
             landscape = (Landscape) load.readObject();
             landscape.setLoadedLandscape(this);
             hero = (Hero) load.readObject();
-            hero.setLoadedHero(this);
+            hero.setLoadedHero(this, joystick);
             foods = (FoodEmitter) load.readObject();
             foods.setLoadedFoodEmitter(this);
             hooligans = (EnemyEmitter) load.readObject();
@@ -215,8 +238,8 @@ public class GameScreen implements Screen {
         controlPanel = new Stage(ScreenManager.getInstance().getViewPort(), batch);
 
         Button.ButtonStyle stylePausePlay = new Button.ButtonStyle();
-        if (loadSaveGame)stylePausePlay.up = skin.getDrawable(Rules.PLAY);
-        else stylePausePlay.up = skin.getDrawable(Rules.PAUSE);
+        String image = (loadSaveGame) ? Rules.PLAY : Rules.PAUSE;
+        stylePausePlay.up = skin.getDrawable(image);
         skin.add("stylePausePlay", stylePausePlay);
 
         Button.ButtonStyle styleExit = new Button.ButtonStyle();
@@ -262,6 +285,7 @@ public class GameScreen implements Screen {
         hero.render(batch);
         hooligans.render(batch);
         waste.render(batch);
+        joystick.render(batch);
         particle.render(batch);
         batch.end();
 
@@ -269,12 +293,50 @@ public class GameScreen implements Screen {
         if (!exit)controlPanel.draw();
         if (exit) stageDialog.draw();
         batch.begin();
+        showLives(batch);
         miniMap.render(batch);
-        font.draw(batch, hero.getScore(), Rules.INDENT, Rules.WORLD_HEIGHT - Rules.INDENT);
+        font.draw(batch, hero.getScoreLine(), Rules.INDENT, Rules.WORLD_HEIGHT - Rules.INDENT);
         if (pause){
             font.draw(batch, Rules.PAUSE,  ScreenManager.getInstance().getCamera().position.x - 50.0f,  ScreenManager.getInstance().getCamera().position.y + font.getCapHeight() / 2);
         }
+        if (live == 0){
+            font.draw(batch, "game over",  ScreenManager.getInstance().getCamera().position.x - 100.0f,  ScreenManager.getInstance().getCamera().position.y + font.getCapHeight() / 2);
+        }
         batch.end();
+    }
+
+    private void recordScore(){
+        score = hero.getScore();
+        if (Gdx.files.local(Rules.PATH_SCORE_HUNGER).exists()){
+            try (DataInput input = new DataInput(Gdx.files.local(Rules.PATH_SCORE_HUNGER).read())){
+                if (score > input.readInt()){
+                    record();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            record();
+        }
+    }
+
+    private void record(){
+        try (DataOutput out = new DataOutput(Gdx.files.local(Rules.PATH_SCORE_HUNGER).write(false))){
+            out.writeInt(score);
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void showLives(SpriteBatch batch){
+        if (live > 0){
+            batch.setColor(1,1,1,0.8f);
+            for (int i = 0; i < live; i++) {
+                batch.draw(life, Rules.WORLD_WIDTH / 2 - (life.getRegionWidth() + Rules.INDENT) * live / 2 + life.getRegionWidth() + (Rules.INDENT + life.getRegionWidth()) * i, Rules.WORLD_HEIGHT - Rules.INDENT - life.getRegionHeight());
+            }
+            batch.setColor(1,1,1,1);
+        }
     }
 
     public void toLevel(){
@@ -289,9 +351,13 @@ public class GameScreen implements Screen {
             music.pause();
             return;
         }
-        if (!music.isPlaying()) music.play();
-        landscape.update(dt);
+        if (hero.isActive() && !music.isPlaying()) music.play();
+        if (live > 0)landscape.update(dt);
         hero.update(dt);
+        if (live == 0 && hero.getReCreationTime() <= 1){
+            recordScore();
+            ScreenManager.getInstance().changeScreen(ScreenManager.ScreenType.OVER);
+        }
         cameraHero.position.set(hero.getPosition().x, hero.getPosition().y, 0);
         controlCameraHero();
         cameraHero.update();
@@ -333,7 +399,10 @@ public class GameScreen implements Screen {
                 switch (waste.activeList.get(j).getType()){
                     case THORN:
                         waste.activeList.get(j).checkCollision(hero);
-                        if (!hero.isActive()) return;
+                        if (!hero.isActive()){
+                            live--;
+                            return;
+                        }
                         break;
                     case CORPSE:
                         waste.activeList.get(j).checkCollision(hooligans.activeList.get(i));
@@ -342,7 +411,10 @@ public class GameScreen implements Screen {
         }
         for (int j = 0; j < particle.activeList.size() ; j++) {
             particle.activeList.get(j).toGetTo(hero);
-            if (!hero.isActive()) return;
+            if (!hero.isActive()){
+                live--;
+                return;
+            }
             for (int i = 0; i < hooligans.activeList.size(); i++)
                 particle.activeList.get(j).toGetTo(hooligans.activeList.get(i));
         }
@@ -352,7 +424,10 @@ public class GameScreen implements Screen {
         for (int i = 0; i < hooligans.activeList.size(); i++) {
             if (hooligans.activeList.get(i).isRunOver(hero)) {
                 hooligans.activeList.get(i).smite(hero);
-                if (!hero.isActive()) return;
+                if (!hero.isActive()){
+                    live--;
+                    return;
+                }
                 if (!hooligans.activeList.get(i).isActive()) {
                     waste.getActiveElement().init(Waste.Type.CORPSE, hooligans.activeList.get(i));
                 }
@@ -392,8 +467,8 @@ public class GameScreen implements Screen {
     private void selectRenderingPause(){
         Button buttonPause = (Button) controlPanel.getActors().get(1);
         Button.ButtonStyle style = buttonPause.getStyle();
-        if (pause)style.up = skin.getDrawable(Rules.PLAY);
-        else style.up = skin.getDrawable(Rules.PAUSE);
+        String image = (pause) ? Rules.PLAY : Rules.PAUSE;
+        style.up = skin.getDrawable(image);
         buttonPause.setStyle(style);
     }
 

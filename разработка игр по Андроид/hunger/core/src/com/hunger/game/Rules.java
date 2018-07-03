@@ -14,4 +14,9 @@ public class Rules {
     public static final String PAUSE = "pause";
     public static final String PLAY = "play";
     public static final String SAVE_FILE = "save.hunger";
+    public static final String PATH_SCORE_HUNGER = "score.hunger";
+    public static final String HIGH_SCORE = "high score: ";
+    public static final String LEVEL = "level: ";
+    public static final String LB = "\n";
+    public static final String SCORE = "score: ";
 }

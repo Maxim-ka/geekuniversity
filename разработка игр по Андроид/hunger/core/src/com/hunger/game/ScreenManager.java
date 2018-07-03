@@ -9,8 +9,8 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 
 public class ScreenManager {
 
-    enum ScreenType{
-        MENU, GAME
+    public enum ScreenType{
+        MENU, GAME, OVER
     }
 
     private static ScreenManager ourInstance = new ScreenManager();
@@ -23,6 +23,7 @@ public class ScreenManager {
     private LoadingScreen ls;
     private GameScreen gs;
     private MenuScreen ms;
+    private GameOverScreen gos;
     private Screen targetScreen;
 
     private SpriteBatch batch;
@@ -53,6 +54,7 @@ public class ScreenManager {
         viewPort = new FitViewport(Rules.WORLD_WIDTH, Rules.WORLD_HEIGHT, camera);
         gs = new GameScreen(batch);
         ms = new MenuScreen(batch);
+        gos = new GameOverScreen(batch);
         ls = new LoadingScreen(batch);
     }
 
@@ -76,6 +78,10 @@ public class ScreenManager {
             case GAME:
                 targetScreen = gs;
                 Assets.getInstance().loadAssets(ScreenType.GAME);
+                break;
+            case OVER:
+                targetScreen = gos;
+                Assets.getInstance().loadAssets(ScreenType.OVER);
                 break;
         }
     }

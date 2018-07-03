@@ -47,7 +47,13 @@ public class Assets {
                 assetManager.load("menu_hunger.pack", TextureAtlas.class);
                 createStdFont(26);
                 createStdFont(32);
+                createStdFont(48);
                 createStdFont(92);
+                break;
+            case OVER:
+                assetManager.load("hunger_over.pack", TextureAtlas.class);
+                createStdFont(48);
+                createStdFont(72);
                 break;
         }
     }
@@ -57,8 +63,12 @@ public class Assets {
             atlas = assetManager.get("menu_hunger.pack");
             return;
         }
-        if (assetManager.isLoaded("hunger_game.pack"))
+        if (assetManager.isLoaded("hunger_game.pack")) {
             atlas = assetManager.get("hunger_game.pack");
+            return;
+        }
+        if (assetManager.isLoaded("hunger_over.pack"))
+            atlas = assetManager.get("hunger_over.pack");
     }
 
     private void createStdFont(int size) {

@@ -6,21 +6,31 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.hunger.game.Assets;
 import com.hunger.game.GameScreen;
+import com.hunger.game.Joystick;
 import com.hunger.game.Rules;
 
 public class Hero extends Eater{
 
-    private static final String LEVEL = "level: ";
-    private static final String SCORE = "\nScore: ";
-    private final StringBuilder score = new StringBuilder(LEVEL);
+    private static final float TRANSITION_TIME_OF_LEVEL = 2.0f;
+    private final StringBuilder scoreLine = new StringBuilder(Rules.LEVEL);
     private transient TextureRegion beaten;
     private transient TextureRegion hero;
     private float reCreationTime = 5.0f;
-    private float transitionTime = 2.0f;
+    private float transitionTime = TRANSITION_TIME_OF_LEVEL;
     private boolean atThatLevel = true;
     private boolean fatty;
     private boolean lose;
     private float fat;
+    private int score;
+    private transient Joystick joystick;
+
+    public float getReCreationTime() {
+        return reCreationTime;
+    }
+
+    public int getScore() {
+        return score;
+    }
 
     public boolean isFatty() {
         return fatty;
@@ -30,13 +40,14 @@ public class Hero extends Eater{
         return atThatLevel;
     }
 
-    public StringBuilder getScore() {
-        return score;
+    public StringBuilder getScoreLine() {
+        return scoreLine;
     }
 
-    public Hero(GameScreen gs) {
+    public Hero(GameScreen gs, Joystick joystick) {
         super(gs, "hero");
         super.init();
+        this.joystick = joystick;
         beaten = Assets.getInstance().getAtlas().findRegion("beaten");
         angle = -90.0f;
         hero = region;
@@ -54,7 +65,7 @@ public class Hero extends Eater{
     @Override
     public void render(SpriteBatch batch){
         super.render(batch);
-        if (!isActive()){
+        if (!isActive() && gs.getLive() > 0){
             gs.getFont().draw(batch, "to be continued...",  position.x - 150.0f,  position.y - halfHeight *scale);
         }
     }
@@ -82,8 +93,8 @@ public class Hero extends Eater{
         transitionTime -= dt;
         if (transitionTime > 0.0f) {
             int zoom = (fatty) ? -1 : 1;
-            this.angle += zoom * 180.0f * dt;
-            scale += zoom * 0.25f * dt;
+            this.angle += zoom * 360.0f / TRANSITION_TIME_OF_LEVEL * dt;
+            scale += zoom * (Rules.MAX_SCALE - Rules.SCALE_EATER) / TRANSITION_TIME_OF_LEVEL * dt;
             return true;
         }
         return false;
@@ -93,7 +104,7 @@ public class Hero extends Eater{
         gs.toLevel();
         gs.getLandscape().initMapLevel();
         super.init();
-        transitionTime = 2.0f;
+        transitionTime = TRANSITION_TIME_OF_LEVEL;
         atThatLevel = true;
     }
     @Override
@@ -116,8 +127,9 @@ public class Hero extends Eater{
                     lose = false;
                 }
             }
-            score.delete(LEVEL.length(), score.length());
-            score.append(gs.getLevel()).append(SCORE).append(Math.round((scale - Rules.SCALE_EATER + fat) * 100));
+            score = Math.round((scale - Rules.SCALE_EATER + fat) * 100);
+            scoreLine.delete(Rules.LEVEL.length(), scoreLine.length());
+            scoreLine.append(gs.getLevel()).append(Rules.LB).append(Rules.SCORE).append(score);
         } else{
             reCreationTime -= dt;
             if (reCreationTime > 0.0f){
@@ -144,10 +156,11 @@ public class Hero extends Eater{
         }
     }
 
-    public void setLoadedHero(GameScreen gs){
+    public void setLoadedHero(GameScreen gs, Joystick joystick){
+        this.gs = gs;
+        this.joystick = joystick;
         beaten = Assets.getInstance().getAtlas().findRegion("beaten");
         hero = Assets.getInstance().getAtlas().findRegion("hero");
-        region = hero;
-        this.gs = gs;
+        region = (isActive()) ? hero : beaten;
     }
 }
