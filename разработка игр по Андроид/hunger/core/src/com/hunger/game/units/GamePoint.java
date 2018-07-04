@@ -27,6 +27,10 @@ public abstract class GamePoint implements Poolable, Serializable {
     int halfHeight;
     boolean active;
 
+    public int getHalfWidth() {
+        return halfWidth;
+    }
+
     public void setScale(float scale) {
         this.scale = scale;
     }

@@ -18,7 +18,6 @@ public abstract class Eater extends GamePoint {
         super(gs, textureName);
         tmp = new Vector2();
         target = new Vector2();
-        scale = Rules.SCALE_EATER;
     }
 
     @Override

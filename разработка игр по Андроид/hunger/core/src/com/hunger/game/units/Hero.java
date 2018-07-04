@@ -46,22 +46,24 @@ public class Hero extends Eater{
 
     public Hero(GameScreen gs, Joystick joystick) {
         super(gs, "hero");
-        super.init();
         this.joystick = joystick;
         beaten = Assets.getInstance().getAtlas().findRegion("beaten");
-        angle = -90.0f;
         hero = region;
         acceleration = 300.0f;
+        init();
     }
 
     @Override
     public void init(){
+        position.set(Rules.GLOBAL_WIDTH /2, Rules.GLOBAL_HEIGHT /2);
         scale = Rules.SCALE_EATER;
         region = hero;
         reCreationTime = 5.0f;
-        comeToLevel();
         angle = -90.0f;
+        active = true;
+        gs.getLandscape().initMapLevel(this);
     }
+
     @Override
     public void render(SpriteBatch batch){
         super.render(batch);
@@ -101,12 +103,13 @@ public class Hero extends Eater{
     }
 
     private void comeToLevel(){
+        position.set(Rules.GLOBAL_WIDTH / 2, Rules.GLOBAL_HEIGHT / 2);
         gs.toLevel();
-        gs.getLandscape().initMapLevel();
-        super.init();
+        gs.getLandscape().initMapLevel(this);
         transitionTime = TRANSITION_TIME_OF_LEVEL;
         atThatLevel = true;
     }
+
     @Override
     public void update(float dt){
         if (isActive()) {

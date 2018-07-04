@@ -139,7 +139,7 @@ public class GameScreen implements Screen {
         skin = new Skin(Assets.getInstance().getAtlas());
         installControlPanel();
         generateOutputDialog();
-        InputMultiplexer inputMultiplexer = new InputMultiplexer(joystick, controlPanel, stageDialog);
+        InputMultiplexer inputMultiplexer = new InputMultiplexer(controlPanel, stageDialog, joystick);
         Gdx.input.setInputProcessor(inputMultiplexer);
         heroReCreation = Assets.getInstance().getAssetManager().get("to_be_continued.mp3");
         music = Assets.getInstance().getAssetManager().get("Beverly_hills_COP_1984.mp3");
