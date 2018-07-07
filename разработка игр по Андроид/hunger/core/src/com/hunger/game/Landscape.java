@@ -3,6 +3,7 @@ package com.hunger.game;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
+import com.hunger.game.units.Eater;
 import com.hunger.game.units.Hero;
 
 import java.io.Serializable;
@@ -48,13 +49,13 @@ public class Landscape implements Serializable {
 
     }
 
-    private boolean isPlaceForHero(Hero hero, int cellX, int cellY) {
-        if((int)hero.getPosition().x /cellSize == cellX && (int)hero.getPosition().y / cellSize == cellY) return true;
+    private boolean isPlaceForHero(Eater eater, int cellX, int cellY) {
+        if((int)eater.getPosition().x /cellSize == cellX && (int)eater.getPosition().y / cellSize == cellY) return true;
         int numberPoint = 8;
-        float radius = hero.getScale() * hero.getHalfWidth();
+        float radius = eater.getScale() * eater.getHalfWidth();
         for (int i = 0; i < numberPoint; i++) {
-            float tmpX = hero.getPosition().x + radius * (float) Math.cos(2 * Math.PI / numberPoint * i);
-            float tmpY = hero.getPosition().y + radius * (float) Math.sin(2 * Math.PI / numberPoint * i);
+            float tmpX = eater.getPosition().x + radius * (float) Math.cos(2 * Math.PI / numberPoint * i);
+            float tmpY = eater.getPosition().y + radius * (float) Math.sin(2 * Math.PI / numberPoint * i);
             if (cellX == (int) tmpX / cellSize && cellY == (int) tmpY / cellSize) return true;
         }
         return false;

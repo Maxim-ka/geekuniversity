@@ -24,21 +24,32 @@ public abstract class Eater extends GamePoint {
     public void update(float dt){
         super.update(dt);
         velocity.scl(0.97f);
-        float velLen = velocity.len() * dt;
-        tmp.set(velocity);
-        tmp.nor();
-        float nX = tmp.x;
-        float nY = tmp.y;
-        for (int i = 0; i < velLen; i++) {
-            tmp.set(position.x + nX, position.y);
+        boolean setPos = true;
+        do{
+            tmp.set(position);
+            tmp.mulAdd(velocity, dt);
             if (gs.getLandscape().isCellEmpty(tmp.x, tmp.y, halfWidth * scale)){
                 position.set(tmp);
+                setPos = false;
+            }else{
+                velocity.rotate(MathUtils.randomSign());
             }
-            tmp.set(position.x, position.y + nY);
-            if (gs.getLandscape().isCellEmpty(tmp.x, tmp.y, halfWidth * scale)){
-                position.set(tmp);
-            }
-        }
+        }while (setPos);
+//        float velLen = velocity.len() * dt;
+//        tmp.set(velocity);
+//        tmp.nor();
+//        float nX = tmp.x;
+//        float nY = tmp.y;
+//        for (int i = 0; i < velLen; i++) {
+//            tmp.set(position.x + nX, position.y);
+//            if (gs.getLandscape().isCellEmpty(tmp.x, tmp.y, halfWidth * scale)){
+//                position.set(tmp);
+//            }
+//            tmp.set(position.x, position.y + nY);
+//            if (gs.getLandscape().isCellEmpty(tmp.x, tmp.y, halfWidth * scale)){
+//                position.set(tmp);
+//            }
+//        }
     }
 
     void getSpeed(float dt){
