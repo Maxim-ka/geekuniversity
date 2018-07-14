@@ -1,5 +1,6 @@
 package cloud_storage.client;
 
+import cloud_storage.common.Rule;
 import cloud_storage.common.SCM;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
@@ -38,12 +39,12 @@ public class Controller implements Initializable{
     @FXML
     private PasswordField pass;
     @FXML
-    private BorderPane server;
+    private BorderPane connected;
     @FXML
-    private Pane connection;
+    private Pane offline;
 
     private ObservableList<File> data;
-    private final Client client = new Client();
+    private final Client client = new Client(Rule.IP_ADDRESS, Rule.PORT);
 
     public void openFolder(){
         Stage stage = (Stage) menu.getScene().getWindow();
@@ -57,19 +58,22 @@ public class Controller implements Initializable{
     }
 
     public void authorize(ActionEvent actionEvent) {
-        if (login.getText().isEmpty() || pass.getText().isEmpty()) return;
-        client.connect();
-        if (client.isConnected()){
-            client.toSendServiceMessage(String.format("%s %s %s", SCM.AUTH, login.getText(), pass.getText()));
-            login.clear();
-            pass.clear();
-            if (client.confirmAuthorization()) {
-                connection.setVisible(false);
-                connection.setManaged(false);
-                server.setVisible(true);
-                server.setManaged(true);
-            }
+        if (login.getText().isEmpty() || pass.getText().isEmpty()) {
+            // TODO: 12.07.2018 написать окно предупреждения
+            return;
         }
+        if (client.connect()){
+            client.toSendServiceMessage(String.format("%s %s %s", SCM.AUTH, login.getText(), pass.getText()));
+            client.getAuthorization();
+            if (client.isAuthorized()){
+                offline.setVisible(false);
+                offline.setManaged(false);
+                connected.setVisible(true);
+                connected.setManaged(true);
+            }// TODO: 14.07.2018 вывод сообщения о не удачной авторизации
+        }
+        login.clear();
+        pass.clear();
     }
 
     @Override
@@ -93,6 +97,5 @@ public class Controller implements Initializable{
             }
         });
         local.setItems(data);
-
     }
 }

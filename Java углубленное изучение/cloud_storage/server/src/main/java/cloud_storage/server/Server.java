@@ -1,49 +1,46 @@
 package cloud_storage.server;
 
-import cloud_storage.server.ClientHandler;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.util.Iterator;
+import cloud_storage.common.Recipient;
+import cloud_storage.common.Sender;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.*;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 
-public class Server implements Runnable {
+public class Server {
 
     private final int port;
-    private Selector selector;
-    private ServerSocketChannel serverSocketChannel;
-    private SelectionKey key;
 
-    public Server(int port) throws IOException {
+    Server(int port) {
         this.port = port;
-        selector = Selector.open();
-        serverSocketChannel = ServerSocketChannel.open();
-        serverSocketChannel.configureBlocking(false);
-        serverSocketChannel.socket().bind(new InetSocketAddress(port));
-        key = serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
     }
 
-    @Override
-    public void run() {
+    public void run() throws InterruptedException {
+        EventLoopGroup bossGroup = new NioEventLoopGroup();
+        EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
-//            Iterator<SelectionKey> iter;
-//            SelectionKey key;
-            while (serverSocketChannel.isOpen()) {
-                selector.select();
-                Iterator<SelectionKey> iter = selector.selectedKeys().iterator();
-                while (iter.hasNext()) {
-                    SelectionKey key = iter.next();
-                    iter.remove();
-                    if (key.isAcceptable()) {
-                        new Thread(new ClientHandler(key, selector)).start();
-                    }
-                }
-            }
-        }catch (IOException e){
-            e.printStackTrace();
+            ServerBootstrap serverBootstrap = new ServerBootstrap();
+            serverBootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
+                    .handler(new LoggingHandler(LogLevel.INFO))
+                    .childHandler(new ChannelInitializer<SocketChannel>(){
+                        @Override
+                        public void initChannel(SocketChannel ch) throws Exception {
+                            ch.pipeline().addLast(new Recipient(), new Authorization(), new ClientChannel(), new Sender());
+                        }
+                    })
+                    .option(ChannelOption.SO_BACKLOG, 128)
+                    .childOption(ChannelOption.SO_KEEPALIVE, true);
+            ChannelFuture f = serverBootstrap.bind(port).sync();
+//            if (f.isSuccess()) new ClientChannel(f.channel());
+            f.channel().closeFuture().sync();
+        } finally {
+            workerGroup.shutdownGracefully();
+            bossGroup.shutdownGracefully();
+            System.out.println("закончили работу");
         }
     }
 }
