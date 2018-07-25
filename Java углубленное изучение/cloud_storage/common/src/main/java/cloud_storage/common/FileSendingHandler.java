@@ -10,45 +10,56 @@ import java.nio.channels.FileChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 
-public class Sender{
+public class FileSendingHandler{
 
-    private Channel channel;
     private Path currentDirectory;
 
-    public Sender(Channel channel) {
-        this.channel = channel;
-    }
-
-    public void send(Object message){
-        try {
-            ChannelFuture future = channel.writeAndFlush(message);
-            future.await();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void actionWithFile(String command, String currentFolder, File[] files){
+    public RequestCatalog actionWithFile(Channel channel, String command, String currentFolder, File[] files){
         currentDirectory = Paths.get(currentFolder);
-        for (int i = 0; i < files.length; i++) {
-            if (files[i].isFile()){
-                readFile(command, files[i]);
+        for (File file : files) {
+            if (file.isFile()) {
+                try {
+                    switch (command) {
+                        case SCM.COPY:
+                            readFile(channel, file);
+                            break;
+                        case SCM.DELETE:
+                            Files.delete(file.toPath());
+                            break;
+                        case SCM.RELOCATE:
+                            readFile(channel, file);
+                            Files.delete(file.toPath());
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 continue;
             }
-            if (files[i].isDirectory()){
+            if (file.isDirectory()) {
                 try {
-                    Files.walkFileTree(files[i].toPath(), new FileVisitor<Path>() {
+                    Files.walkFileTree(file.toPath(), new FileVisitor<Path>() {
                         @Override
                         public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                            Path relativeDir = currentDirectory.relativize(dir);
-                            readFolder(command, relativeDir.toFile());
+                            if (command.startsWith(SCM.COPY) || command.startsWith(SCM.RELOCATE)) {
+                                Path relativeDir = currentDirectory.relativize(dir);
+                                readFolder(channel, relativeDir.toFile());
+                            }
                             return FileVisitResult.CONTINUE;
                         }
 
                         @Override
                         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-
-                            readFile(command, file.toFile());
+                            switch (command) {
+                                case SCM.COPY:
+                                    readFile(channel, file.toFile());
+                                    break;
+                                case SCM.DELETE:
+                                    Files.delete(file);
+                                    break;
+                                case SCM.RELOCATE:
+                                    readFile(channel, file.toFile());
+                                    Files.delete(file);
+                            }
                             return FileVisitResult.CONTINUE;
                         }
 
@@ -61,6 +72,9 @@ public class Sender{
 
                         @Override
                         public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                            if (command.startsWith(SCM.RELOCATE) || command.startsWith(SCM.DELETE)) {
+                                Files.delete(dir);
+                            }
                             return FileVisitResult.CONTINUE;
                         }
                     });
@@ -69,17 +83,18 @@ public class Sender{
                 }
             }
         }
+        return new RequestCatalog(SCM.OK, currentFolder, new File(currentFolder).listFiles());
     }
 
     private File getRelativePathFile(File file){
         return currentDirectory.relativize(file.toPath()).toFile();
     }
 
-    private void readFolder(String command, File file){
-        send(new TransferFile(command, file, 0, 0, null));
+    private void readFolder(Channel channel, File file){
+        channel.writeAndFlush(new TransferFile(file, 1, 1, null));
     }
 
-    private void readFile(String command, File file){
+    private void readFile(Channel channel,File file){
         try(RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
             int quotient = (int) (randomAccessFile.length() /  Rule.MAX_NUMBER_TRANSFER_BYTES);
             int totalPart = (randomAccessFile.length() %  Rule.MAX_NUMBER_TRANSFER_BYTES == 0) ? quotient : quotient + 1;
@@ -99,7 +114,10 @@ public class Sender{
                         byteBuffer.flip();
                         byteBuffer.get(bytes);
                     }
-                    send(new TransferFile(command, relFile, ++portion, totalPart, bytes));
+                    TransferFile transferFile = new TransferFile(relFile, ++portion, totalPart, bytes);
+                    ChannelFuture future = channel.writeAndFlush(transferFile);
+                    // TODO: 25.07.2018 Проблема передачи больших файлов > Rule.MAX_NUMBER_TRANSFER_BYTES от сервера к клиенту без блокировки
+                    System.out.println(transferFile.getPortion());
                     byteBuffer.clear();
                 }
             }

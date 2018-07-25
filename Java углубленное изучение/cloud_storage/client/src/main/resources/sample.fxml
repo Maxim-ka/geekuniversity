@@ -94,7 +94,7 @@
                     <top>
                         <Label fx:id="directoryOnServer" alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="30.0" prefWidth="400.0" text="Label" BorderPane.alignment="CENTER">
                              <graphic>
-                                <ProgressBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefWidth="200.0" progress="0.0" />
+                                <ProgressBar fx:id="progressBar" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefWidth="300.0" progress="0.0" />
                              </graphic>
                         </Label>
                     </top>

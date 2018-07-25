@@ -48,7 +48,6 @@ public class Server {
                     .option(ChannelOption.SO_BACKLOG, 128)
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
             ChannelFuture f = serverBootstrap.bind(port).sync();
-            if (f.isSuccess()) System.out.println(f.isSuccess());;
 
             f.channel().closeFuture().sync();
         } finally {

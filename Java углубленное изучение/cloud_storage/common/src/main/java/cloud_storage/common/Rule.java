@@ -2,7 +2,7 @@ package cloud_storage.common;
 
 public class Rule {
 
-    public static final int PORT = 8189;
+    public static final int PORT = 8080;
     public static final String IP_ADDRESS = "127.0.0.1";
 
     public static final int MAX_NUMBER_TRANSFER_BYTES = 104857600;

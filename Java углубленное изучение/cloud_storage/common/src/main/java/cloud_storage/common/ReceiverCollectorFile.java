@@ -8,13 +8,13 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
-public class ActionOnFile {
+public class ReceiverCollectorFile {
 
     private int countPart;
 
 
     public void writeFile(String currentFolder, TransferFile transferFile){
-        if (transferFile.getTotal() == 0){
+        if (transferFile.getBytes() == null){
             new File(String.format("%s/%s", currentFolder, transferFile.getFile())).mkdir();
             return;
         }
@@ -27,9 +27,14 @@ public class ActionOnFile {
                 fileChannel.write(byteBuffer);
             }
             fileChannel.close();
-            countPart++;
+            System.out.println(transferFile.getPortion() + "часть файла записанного");
+            ++countPart;
+            System.out.println(countPart + "счетчик");
             if (countPart == transferFile.getTotal()){
                 checkNameFile(nameFile, tempFile);
+                countPart = 0;
+            }else if (transferFile.getTotal() == transferFile.getPortion()){
+                System.out.println("нарушен порядок файлов");
                 countPart = 0;
             }
         } catch (IOException e) {

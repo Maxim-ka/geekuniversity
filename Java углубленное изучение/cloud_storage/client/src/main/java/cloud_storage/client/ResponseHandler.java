@@ -1,7 +1,7 @@
 package cloud_storage.client;
 
 import cloud_storage.client.GUI.Controller;
-import cloud_storage.common.ActionOnFile;
+import cloud_storage.common.ReceiverCollectorFile;
 import cloud_storage.common.RequestCatalog;
 import cloud_storage.common.SCM;
 import cloud_storage.common.TransferFile;
@@ -14,11 +14,11 @@ import java.io.File;
 class ResponseHandler extends ChannelInboundHandlerAdapter{
 
     private Controller controller;
-    private ActionOnFile action;
+    private ReceiverCollectorFile writer;
 
     ResponseHandler(Controller controller) {
         this.controller = controller;
-        action = new ActionOnFile();
+        writer = new ReceiverCollectorFile();
     }
 
     @Override
@@ -45,20 +45,25 @@ class ResponseHandler extends ChannelInboundHandlerAdapter{
                 return;
             }
             if (strings[0].equals(SCM.BAD)){
-
+                showResponse(request.getCurrentCatalog(), request.getCatalog());
+                System.out.println("проблема с получением файла");
+                // TODO: 27.07.2018 вывод сообщения
             }
         }
         if (msg instanceof TransferFile){
             TransferFile file = (TransferFile) msg;
-            action.writeFile(controller.getCurrentDirectory().getText(), file);
+            System.out.println(file.getPortion() + " часть принятого");
+            writer.writeFile(controller.getCurrentDirectory().getText(), file);
             // TODO: 20.07.2018 обновление экрана пока последней части файла
-            if(file.getPortion() == file.getTotal()) updateCurrentDirectory(file.getFile());
+            if(file.getPortion() == file.getTotal()){
+                updateCurrentDirectory();
+            }
         }
     }
 
-    private void updateCurrentDirectory(final File file){
+    private void updateCurrentDirectory(){
         Platform.runLater(() ->{
-            controller.getData().add(file);
+            controller.getData().setAll(new File(controller.getCurrentDirectory().getText()).listFiles());
         });
     }
 

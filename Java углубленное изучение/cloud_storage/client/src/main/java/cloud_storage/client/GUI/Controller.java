@@ -53,12 +53,13 @@ public class Controller implements Initializable{
     private TableColumn<File, String> serverSize;
     @FXML
     private TableColumn<File, String> serverLastModified;
+    @FXML
+    private ProgressBar progressBar;
 
     private ObservableList<File> data;
     private ObservableList<File> catalogUser;
     private MultipleSelectionModel<File> selectedLocal;
     private MultipleSelectionModel<File> selectedServer;
-    private List<File> listSelected;
     private boolean onServer;
 
     public ObservableList<File> getData() {
@@ -90,38 +91,54 @@ public class Controller implements Initializable{
     }
 
     public void copy(ActionEvent actionEvent) {
-        listSelected = getSelected();
-        if (listSelected == null) return;   // TODO: 24.07.2018 предупреждение о неправильных действиях
         if (!onServer && currentDirectory.getText() == null) return;
-        File[] filesList = listSelected.toArray(new File[listSelected.size()]);
+        if (onServer && directoryOnServer.getText() == null) return;
+        if (getSelected() == null) return;   // TODO: 24.07.2018 предупреждение о неправильных действиях
         if (onServer){
-            Client.getInstance().sendRequestToServer(SCM.COPY, currentDirectory.getText(), filesList);
+            Client.getInstance().sendRequestToServer(SCM.COPY, currentDirectory.getText(), getSelected());
         }else {
-            Client.getInstance().sendRequestGetFromServer(new RequestCatalog(SCM.COPY, directoryOnServer.getText(), filesList));
+            Client.getInstance().sendRequestGetFromServer(new RequestCatalog(SCM.COPY, directoryOnServer.getText(), getSelected()));
         }
     }
 
     public void relocate(ActionEvent actionEvent) {
+        if (!onServer && currentDirectory.getText() == null) return;
+        if (onServer && directoryOnServer.getText() == null) return;
+        if (getSelected() == null) return;   // TODO: 24.07.2018 предупреждение о неправильных действиях
+        if (onServer){
+            Client.getInstance().sendRequestToServer(SCM.RELOCATE, currentDirectory.getText(), getSelected());
+        }else {
+            Client.getInstance().sendRequestGetFromServer(new RequestCatalog(SCM.RELOCATE, directoryOnServer.getText(), getSelected()));
+        }
     }
 
     public void delete(ActionEvent actionEvent) {
+        if (!onServer && currentDirectory.getText() == null) return;
+        if (getSelected() == null) return;   // TODO: 24.07.2018 предупреждение о неправильных действиях
+        if (onServer){
+            Client.getInstance().sendRequestToServer(SCM.DELETE, currentDirectory.getText(), getSelected());
+        }else {
+            Client.getInstance().sendRequestGetFromServer(new RequestCatalog(SCM.DELETE, directoryOnServer.getText(), getSelected()));
+        }
     }
 
     public void createFolder(ActionEvent actionEvent) {
     }
 
     public void update(ActionEvent actionEvent) {
+        if (Client.getInstance().isAuthorized())
+            Client.getInstance().sendRequestGetFromServer(new RequestCatalog(SCM.UPDATE, directoryOnServer.getText(), null));
+        if (!data.isEmpty()) data.setAll(new File(currentDirectory.getText()).listFiles());
     }
 
-
-    private List<File> getSelected(){
+    private File[] getSelected(){
         if (!selectedLocal.isEmpty()){
             onServer = true;
-            return selectedLocal.getSelectedItems();
+            return selectedLocal.getSelectedItems().toArray(new File[selectedLocal.getSelectedItems().size()]);
         }
         if (!selectedServer.isEmpty()){
             onServer = false;
-            return selectedServer.getSelectedItems();
+            return selectedServer.getSelectedItems().toArray(new File[selectedServer.getSelectedItems().size()]);
         }
         // TODO: 16.07.2018 сообщение о отсутвии выбранных файлов
         System.out.println("Нет выбранных файлов");

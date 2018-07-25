@@ -4,7 +4,6 @@ package cloud_storage.client;
 import cloud_storage.client.GUI.Controller;
 import cloud_storage.common.Rule;
 import cloud_storage.common.SCM;
-import cloud_storage.common.Sender;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -76,7 +75,7 @@ public class Client {
             });
             f = bootstrap.connect(host, port).sync();
             if (f.isSuccess()){
-                sender = new Sender(f.channel());
+                sender = new Sender(f.channel(), controller);
                 return true;
             }
         } catch (Exception e) {

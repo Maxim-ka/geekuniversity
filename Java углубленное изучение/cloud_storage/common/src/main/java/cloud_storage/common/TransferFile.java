@@ -5,15 +5,10 @@ import java.io.Serializable;
 
 public class TransferFile implements Serializable{
 
-    private String string;
     private File file;
     private int portion;
     private int total;
     private byte[] bytes;
-
-    public String getString() {
-        return string;
-    }
 
     public File getFile() {
         return file;
@@ -31,8 +26,7 @@ public class TransferFile implements Serializable{
         return bytes;
     }
 
-    public TransferFile(String string, File file, int portion, int total, byte[] bytes) {
-        this.string = string;
+    TransferFile(File file, int portion, int total, byte[] bytes) {
         this.file = file;
         this.portion = portion;
         this.total = total;
