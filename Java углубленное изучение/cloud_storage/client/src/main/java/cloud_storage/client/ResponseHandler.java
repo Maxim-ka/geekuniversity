@@ -24,7 +24,8 @@ class ResponseHandler extends ChannelInboundHandlerAdapter{
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof  RequestCatalog){
-            String string = ((RequestCatalog) msg).getString();
+            RequestCatalog request = (RequestCatalog) msg;
+            String string = request.getCommand();
             String[] strings = string.split("\\s+");
             if (strings[0].equals(SCM.AUTH)) {
                 if (strings[1].equals(SCM.OK)){
@@ -32,7 +33,7 @@ class ResponseHandler extends ChannelInboundHandlerAdapter{
                     controller.getLogin().clear();
                     controller.getPass().clear();
                     controller.authorization();
-                    showResponse(strings[2], ((RequestCatalog) msg).getCatalog());
+                    showResponse(request.getCurrentCatalog(), request.getCatalog());
                     return;
                 }
                 Client.getInstance().setAuthorized(false);
@@ -40,7 +41,7 @@ class ResponseHandler extends ChannelInboundHandlerAdapter{
                 return;
             }
             if (strings[0].equals(SCM.OK)){
-                showResponse(strings[1], ((RequestCatalog) msg).getCatalog());
+                showResponse(request.getCurrentCatalog(), request.getCatalog());
                 return;
             }
             if (strings[0].equals(SCM.BAD)){

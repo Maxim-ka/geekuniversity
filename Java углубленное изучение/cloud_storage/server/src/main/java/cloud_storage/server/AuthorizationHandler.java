@@ -4,6 +4,7 @@ import cloud_storage.common.RequestCatalog;
 import cloud_storage.common.SCM;
 import cloud_storage.server.dataBase.AuthService;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import java.io.File;
@@ -28,10 +29,10 @@ public class AuthorizationHandler extends ChannelInboundHandlerAdapter{
             if (catalogUser != null){
                 if (!isDuplicateCatalog(catalogUser)){
                     if (new File(catalogUser).exists()){
-                        String message = String.format("%s %s %s", strings[0], SCM.OK ,catalogUser);
-                        ctx.fireChannelRead(message);
-                        File[] catalog = new File(catalogUser).listFiles();
-                        ctx.channel().writeAndFlush(new RequestCatalog(message, catalog));
+                        String message = String.format("%s %s", strings[0], SCM.OK);
+                        ctx.fireChannelRead(String.format("%s %s", strings[0], catalogUser));
+                        File[] catalogFiles = new File(catalogUser).listFiles();
+                        ctx.writeAndFlush(new RequestCatalog(message, catalogUser, catalogFiles));
                         ctx.pipeline().remove(this);
                         return;
                     }
@@ -39,8 +40,9 @@ public class AuthorizationHandler extends ChannelInboundHandlerAdapter{
             }
         }
         String message = String.format("%s %s", strings[0], SCM.BAD);
-        ChannelFuture f = ctx.channel().writeAndFlush(new RequestCatalog(message, null));
+        ChannelFuture f = ctx.channel().writeAndFlush(new RequestCatalog(message,null, null));
         f.channel().disconnect();
+        f.addListener(ChannelFutureListener.CLOSE);
     }
 
     private boolean isDuplicateCatalog(String catalog){

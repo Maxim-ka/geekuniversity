@@ -16,7 +16,6 @@ import io.netty.handler.codec.serialization.ObjectEncoder;
 import io.netty.util.concurrent.Future;
 
 import java.io.File;
-import java.util.List;
 
 public class Client {
 
@@ -57,12 +56,12 @@ public class Client {
         return INSTANCE;
     }
 
-    public void sendRequest(String message){
+    public void sendRequestGetFromServer(Object message){
         sender.send(message);
     }
 
-    public void sendRequestForActionWithFile(String command, List<File> fileList){
-        sender.actionWithFile(command, fileList.toArray(new File[fileList.size()]));
+    public void sendRequestToServer(String command, String currentFolder, File[] fileList){
+        sender.actionWithFile(command, currentFolder, fileList);
     }
 
     public boolean connect(){
@@ -91,7 +90,7 @@ public class Client {
 
     public void disconnect() {
         try {
-            sendRequest(SCM.DISCONNECT);
+            sendRequestGetFromServer(SCM.DISCONNECT);
             f.channel().disconnect().sync();
         } catch (InterruptedException e) {
             e.printStackTrace();

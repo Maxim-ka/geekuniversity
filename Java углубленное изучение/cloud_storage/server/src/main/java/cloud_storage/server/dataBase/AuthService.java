@@ -56,9 +56,9 @@ public class AuthService {
 //        answer = check(NICKNAME, nickname);
 //        if (answer != null) return nickname;
 //        try (PreparedStatement preRequestForRegistration = connection.prepareStatement(REQUEST_REGISTRATION)){
-//            preRequestForRegistration.setString(1, login.toLowerCase());
-//            preRequestForRegistration.setString(2, password.toLowerCase());
-//            preRequestForRegistration.setString(3, nickname);
+//            preRequestForRegistration.setCommand(1, login.toLowerCase());
+//            preRequestForRegistration.setCommand(2, password.toLowerCase());
+//            preRequestForRegistration.setCommand(3, nickname);
 //            if (preRequestForRegistration.executeUpdate() == 1) return null;
 //        } catch (SQLException e) {
 //            e.printStackTrace();
@@ -70,8 +70,8 @@ public class AuthService {
 //        String answer = check(NICKNAME, newNick);
 //        if (answer != null) return newNick;
 //        try (PreparedStatement preRequestChangeNickname = connection.prepareStatement(REQUEST_CHANGE_NICKNAME)){
-//            preRequestChangeNickname.setString(1, newNick);
-//            preRequestChangeNickname.setString(2, oldNick);
+//            preRequestChangeNickname.setCommand(1, newNick);
+//            preRequestChangeNickname.setCommand(2, oldNick);
 //            if (preRequestChangeNickname.executeUpdate() == 1) return null;
 //        } catch (SQLException e) {
 //            e.printStackTrace();

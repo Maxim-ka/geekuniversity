@@ -1,6 +1,7 @@
 package cloud_storage.client.GUI;
 
 import cloud_storage.client.Client;
+import cloud_storage.common.RequestCatalog;
 import cloud_storage.common.SCM;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
@@ -90,9 +91,14 @@ public class Controller implements Initializable{
 
     public void copy(ActionEvent actionEvent) {
         listSelected = getSelected();
-        if (listSelected == null) return;
-        String command = (onServer)? SCM.COPY : String.format("%s %s", SCM.SERVER, SCM.COPY);
-        Client.getInstance().sendRequestForActionWithFile(command, listSelected);
+        if (listSelected == null) return;   // TODO: 24.07.2018 предупреждение о неправильных действиях
+        if (!onServer && currentDirectory.getText() == null) return;
+        File[] filesList = listSelected.toArray(new File[listSelected.size()]);
+        if (onServer){
+            Client.getInstance().sendRequestToServer(SCM.COPY, currentDirectory.getText(), filesList);
+        }else {
+            Client.getInstance().sendRequestGetFromServer(new RequestCatalog(SCM.COPY, directoryOnServer.getText(), filesList));
+        }
     }
 
     public void relocate(ActionEvent actionEvent) {
@@ -144,7 +150,7 @@ public class Controller implements Initializable{
             return;
         }
         if (Client.getInstance().connect())
-            Client.getInstance().sendRequest(String.format("%s %s %s", SCM.AUTH, login.getText(), pass.getText()));
+            Client.getInstance().sendRequestGetFromServer(String.format("%s %s %s", SCM.AUTH, login.getText(), pass.getText()));
 
     }
 

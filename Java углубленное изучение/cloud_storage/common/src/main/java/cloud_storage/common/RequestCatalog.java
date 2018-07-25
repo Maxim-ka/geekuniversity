@@ -5,23 +5,25 @@ import java.io.Serializable;
 
 public class RequestCatalog implements Serializable {
 
-    private String string;
+    private String command;
+    private String currentCatalog;
     private File[] catalog;
 
-    public void setString(String string) {
-        this.string = string;
+    public String getCommand() {
+        return command;
     }
 
-    public String getString() {
-        return string;
+    public String getCurrentCatalog() {
+        return currentCatalog;
     }
 
     public File[] getCatalog() {
         return catalog;
     }
 
-    public RequestCatalog(String string, File[] catalog) {
-        this.string = string;
+    public RequestCatalog(String command, String currentCatalog, File[] catalog) {
+        this.command = command;
+        this.currentCatalog = currentCatalog;
         this.catalog = catalog;
     }
 }
