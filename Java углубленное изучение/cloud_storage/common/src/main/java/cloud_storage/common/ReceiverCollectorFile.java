@@ -20,13 +20,9 @@ public class ReceiverCollectorFile {
         }
         String nameFile = String.format("%s/%s" ,currentFolder, transferFile.getFile());
         File tempFile;
-        ByteBuffer byteBuffer = ByteBuffer.wrap(transferFile.getBytes());
         try(FileOutputStream outputStream = new FileOutputStream(tempFile = new File(nameFile.concat(".temp")), true)) {
-            FileChannel fileChannel = outputStream.getChannel();
-            while (byteBuffer.hasRemaining()){
-                fileChannel.write(byteBuffer);
-            }
-            fileChannel.close();
+            outputStream.write(transferFile.getBytes());
+            outputStream.close();
             System.out.println(transferFile.getPortion() + "часть файла записанного");
             ++countPart;
             System.out.println(countPart + "счетчик");

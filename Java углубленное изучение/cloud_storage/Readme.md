@@ -1,0 +1,1 @@
+Продолжение проекта cloud_storage  [здесь](https://github.com/Maxim-ka/cloud_storage)

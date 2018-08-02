@@ -96,32 +96,22 @@ public class FileSendingHandler{
 
     private void readFile(Channel channel,File file){
         try(RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
+            File relFile = getRelativePathFile(file);
             int quotient = (int) (randomAccessFile.length() /  Rule.MAX_NUMBER_TRANSFER_BYTES);
             int totalPart = (randomAccessFile.length() %  Rule.MAX_NUMBER_TRANSFER_BYTES == 0) ? quotient : quotient + 1;
-            FileChannel fileChannel = randomAccessFile.getChannel();
             int size = (randomAccessFile.length() >= Rule.MAX_NUMBER_TRANSFER_BYTES) ? Rule.MAX_NUMBER_TRANSFER_BYTES : (int) randomAccessFile.length();
-            ByteBuffer byteBuffer = ByteBuffer.allocate(size);
-            int numOfBytesRead = 0;
             int portion = 0;
-            byte[] bytes;
-            File relFile = getRelativePathFile(file);
-            while (numOfBytesRead != -1){
-                numOfBytesRead = fileChannel.read(byteBuffer);
-                if (numOfBytesRead == byteBuffer.capacity() || (numOfBytesRead == -1 && byteBuffer.position() != 0)){
-                    if (numOfBytesRead != -1) bytes = byteBuffer.array();
-                    else {
-                        bytes = new byte[byteBuffer.position()];
-                        byteBuffer.flip();
-                        byteBuffer.get(bytes);
-                    }
-                    TransferFile transferFile = new TransferFile(relFile, ++portion, totalPart, bytes);
-                    ChannelFuture future = channel.writeAndFlush(transferFile);
-                    // TODO: 25.07.2018 Проблема передачи больших файлов > Rule.MAX_NUMBER_TRANSFER_BYTES от сервера к клиенту без блокировки
-                    System.out.println(transferFile.getPortion());
-                    byteBuffer.clear();
-                }
+            while (portion < totalPart){
+                byte[] bytes = new byte[size];
+                randomAccessFile.read(bytes);
+                int residue = (int)(randomAccessFile.length() - randomAccessFile.getFilePointer());
+                if (residue < Rule.MAX_NUMBER_TRANSFER_BYTES) size = residue;
+                TransferFile transferFile = new TransferFile(relFile, ++portion, totalPart, bytes);
+                channel.writeAndFlush(transferFile);
+                // TODO: 25.07.2018 Проблема передачи больших файлов > Rule.MAX_NUMBER_TRANSFER_BYTES от сервера к клиенту без блокировки
+                System.out.println(transferFile.getPortion() + " часть");
+                System.out.println(bytes.length + " массив");
             }
-            fileChannel.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
