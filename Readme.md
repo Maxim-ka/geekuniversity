@@ -7,6 +7,7 @@ Java Core. Профессиональный уровень (соотвеству
 
 2. Четверть:
 
+Алгоритмы и структуры данных на Java. Базовый курс. [здесь](https://github.com/Maxim-ka/Algorithms-and-data-structures-in-Java.-Basic-course.)
 
 Вне четверти:
 Java Углубленное изучение (соответствует java 5) 
