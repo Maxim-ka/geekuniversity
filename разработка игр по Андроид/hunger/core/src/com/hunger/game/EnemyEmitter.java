@@ -3,10 +3,10 @@ package com.hunger.game;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.hunger.game.units.Enemy;
 
-import java.io.Serializable;
-
 public class EnemyEmitter extends ObjectPool<Enemy>{
 
+    private static final int NUMBER_ENEMY = 3;
+    private static final float CREATION_TIME_ENEMY = 5.0f;
     private transient GameScreen gs;
     private int number;
     private float time;
@@ -24,11 +24,11 @@ public class EnemyEmitter extends ObjectPool<Enemy>{
     }
 
     void update(float dt){
-        if (activeList.size() < number + gs.getLevel()) {
-            float interval = 5.0f - gs.getLevel() / 5.0f;
+        if (activeList.size() <= number && activeList.size() < NUMBER_ENEMY + gs.getLevel() * NUMBER_ENEMY) {
+            float interval = CREATION_TIME_ENEMY - gs.getLevel() / CREATION_TIME_ENEMY;
             time += dt;
             if (time >= interval){
-                time = 0.0f;
+                time = 0;
                 getActiveElement().init();
             }
         }
@@ -43,7 +43,7 @@ public class EnemyEmitter extends ObjectPool<Enemy>{
         return new Enemy(gs);
     }
 
-    public void setLoadedEnemyEmitter(GameScreen gs){
+    void setLoadedEnemyEmitter(GameScreen gs){
         this.gs = gs;
         for (int i = 0; i < freeList.size(); i++) {
             freeList.get(i).reload(gs);

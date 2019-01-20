@@ -5,8 +5,6 @@ import com.badlogic.gdx.math.MathUtils;
 import com.hunger.game.GameScreen;
 import com.hunger.game.Rules;
 
-import java.io.Serializable;
-
 public class Waste extends GamePoint{
 
     public enum Type {
@@ -24,8 +22,10 @@ public class Waste extends GamePoint{
         }
     }
 
+    private static final float EXPLOSION_TIME = 2.0f;
     private Type type;
     private transient TextureRegion[] textureRegions;
+    private boolean hook;
 
     public Type getType() {
         return type;
@@ -39,16 +39,20 @@ public class Waste extends GamePoint{
     }
 
     public void checkCollision(Eater eater){
-        if (eater.getDistance(this) < eater.scale * eater.halfWidth + this.scale * this.halfWidth){
+        if (eater.getDistance(this) < eater.scale * eater.halfWidth + scale * halfWidth){
             eater.scale += type.satiety;
-            if (getType() == Type.CORPSE){
-                eater.acceleration = 0.0f;
-                scale += type.satiety;
-                if (scale < 0){
-                    active = false;
-                    eater.acceleration = eater.getRandomAcceleration();
-                }
-            } else active = false;
+            switch (getType()){
+                case CORPSE:
+                    eater.acceleration = 0;
+                    scale -= eater.satiety;
+                    if (scale < 0){
+                        active = false;
+                        eater.acceleration = eater.getRandomAcceleration();
+                    }
+                    break;
+                case THORN:
+                    hook = true;
+            }
             if (eater.scale < Rules.MIN_SCALE) eater.active = false;
         }
     }
@@ -57,26 +61,33 @@ public class Waste extends GamePoint{
         if (this.type != type || region == null) {
             this.type = type;
             region = textureRegions[type.textureIndex];
-            toSize();
+            toSize(region);
         }
-        this.position.set(another.position);
-        scale = (this.getType() == Type.CORPSE) ? 1.0f + another.scale : 0.5f ;
-        angle = MathUtils.random(-90.0f, 90.0f);
+        position.set(another.position);
+        scale = (getType() == Type.CORPSE) ? scale + another.scale : another.scale ;
+        angle = MathUtils.random(-Rules.ANGLE_90_DEGREES, Rules.ANGLE_90_DEGREES);
         active = true;
         time = type.lifetime;
     }
 
     public void update(float dt) {
         time -= dt;
-        if (time <= 2.0f && this.getType() == Type.THORN) {
-            gs.getParticle().launch(this.position, 32 + MathUtils.random(-8, 16), MathUtils.random(-360, 360), MathUtils.random(1,3), MathUtils.random(0.75f, 1.0f), MathUtils.random(0.15f, 0.25f), 1,0.823f,0,1,0,0,0,0);
-        }
-        if (time <= 0.0f){
-            this.active = false;
+        if (hook) time = EXPLOSION_TIME;
+        if (time <= EXPLOSION_TIME && getType() == Type.THORN) explode();
+        if (time <= 0){
+            scale = 1.0f;
+            active = false;
             return;
         }
         super.update(dt);
-        if (getType() == Type.THORN) angle = (angle > 0)? angle + 90.0f * dt : angle - 90.0f * dt;
+        if (getType() == Type.THORN) angle = (angle > 0)? angle + Rules.ANGLE_90_DEGREES * dt :
+                angle - Rules.ANGLE_90_DEGREES * dt;
+    }
+
+    private void explode(){
+        gs.getParticle().launch(position, 32 + MathUtils.random(-8, 16),
+                MathUtils.random(-360, 360), MathUtils.random(1,3), MathUtils.random(0.75f, 1.0f),
+                MathUtils.random(0.15f, 0.25f), 1,0.823f,0,1,0,0,0,0);
     }
 
     public void reload(GameScreen gs, TextureRegion[] regions){

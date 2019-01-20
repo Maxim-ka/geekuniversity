@@ -2,16 +2,13 @@ package com.hunger.game.units;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector2;
 import com.hunger.game.GameScreen;
-
-import java.io.Serializable;
+import com.hunger.game.Rules;
 
 public class Food extends GamePoint{
 
     public enum Type {
-        PIZZA(0, 0.05f), LEMON(1, -0.1f),
-        DOUGHNUT(2, 0.1f);
+        PIZZA(0, 0.05f), LEMON(1, -0.1f), DOUGHNUT(2, 0.1f);
 
         private int textureIndex;
         private float satiety;
@@ -22,11 +19,10 @@ public class Food extends GamePoint{
         }
     }
 
-    private Vector2 tmp = new Vector2();
     private Type type;
     private transient TextureRegion[] textureRegions;
 
-    public Type getType() {
+    Type getType() {
         return type;
     }
 
@@ -36,28 +32,24 @@ public class Food extends GamePoint{
     }
 
     public void init(Type type){
-        super.init();
         if (this.type != type || region == null) {
             this.type = type;
             region = textureRegions[type.textureIndex];
-            toSize();
+            toSize(region);
         }
-        velocity.set(MathUtils.random(-90.0f, 90.0f), MathUtils.random(-90.0f, 90.0f));
+        super.init();
+        velocity.set(MathUtils.random(-Rules.ANGLE_90_DEGREES, Rules.ANGLE_90_DEGREES), MathUtils.random(-Rules.ANGLE_90_DEGREES, Rules.ANGLE_90_DEGREES));
         satiety = type.satiety;
     }
 
     public void update(float dt) {
         super.update(dt);
-        boolean setPos = true;
-        tmp.set(position);
-        do{
-            tmp.mulAdd(velocity, dt);
-            if (gs.getLandscape().isCellEmpty(tmp.x, tmp.y, halfWidth * scale)){
-                position.set(tmp);
-                setPos = false;
-            }else velocity.set(MathUtils.random(-90.0f, 90.0f), MathUtils.random(-90.0f, 90.0f));
-        }while (setPos);
-        angle = (velocity.x < 0) ? angle + 90.0f * dt : angle - 90.0f * dt;
+        move(dt);
+        if(!gs.getLandscape().isCellEmpty(tmp.x, tmp.y, halfWidth * scale)){
+            bounceOffWall(dt);
+        }
+        position.set(tmp);
+        angle = (velocity.x < 0) ? angle + Rules.ANGLE_90_DEGREES * dt : angle - Rules.ANGLE_90_DEGREES * dt;
     }
 
     public void reload(GameScreen gs, TextureRegion[] regions){

@@ -5,10 +5,13 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.hunger.game.units.Food;
 
-import java.io.Serializable;
-
 public class FoodEmitter extends ObjectPool<Food>{
 
+
+    private static final int FIFTY_FIFTY = 50;
+    private static final int PERCENTAGE_OF_BAD_FOOD = 15;
+    private static final int CHANGE_STEP = 5;
+    private static final float CREATION_TIME_FOOD = 0.5f;
     private final String[] textureName = {"pizza", "lemon", "doughnut"};
     private transient TextureRegion[] regions = new TextureRegion[textureName.length];
     private transient GameScreen gs;
@@ -35,18 +38,18 @@ public class FoodEmitter extends ObjectPool<Food>{
     }
 
     private void generateFood() {
-        int shareOfCalories = 50 + gs.getLevel()* 5;
-        int shareBadFood = 10 + gs.getLevel() * 5;
-        Food.Type goodFood = (MathUtils.random(100) < shareOfCalories) ? Food.Type.PIZZA : Food.Type.DOUGHNUT;
-        Food.Type type = (MathUtils.random(100) < shareBadFood) ? Food.Type.LEMON : goodFood;
+        int shareOfCalories = FIFTY_FIFTY + gs.getLevel()* CHANGE_STEP;
+        int shareBadFood = PERCENTAGE_OF_BAD_FOOD + gs.getLevel() * CHANGE_STEP;
+        Food.Type goodFood = (MathUtils.random(Rules.RANGE_100) < shareOfCalories) ? Food.Type.PIZZA : Food.Type.DOUGHNUT;
+        Food.Type type = (MathUtils.random(Rules.RANGE_100) < shareBadFood) ? Food.Type.LEMON : goodFood;
         getActiveElement().init(type);
     }
 
     void update(float dt){
-        if (activeList.size() < number) {
+        if (activeList.size() <= number) {
             time += dt;
-            if (time >= 0.5f + 0.5f * gs.getLevel()){
-                time = 0.0f;
+            if (time >= CREATION_TIME_FOOD + CREATION_TIME_FOOD * gs.getLevel()){
+                time = 0;
                 generateFood();
             }
         }
@@ -61,7 +64,7 @@ public class FoodEmitter extends ObjectPool<Food>{
         return new Food(gs, regions);
     }
 
-    public void setLoadedFoodEmitter(GameScreen gs){
+    void setLoadedFoodEmitter(GameScreen gs){
         this.gs = gs;
         regions = new TextureRegion[textureName.length];
         toRegions();

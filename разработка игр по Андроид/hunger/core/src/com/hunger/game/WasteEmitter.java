@@ -40,7 +40,7 @@ public class WasteEmitter extends ObjectPool<Waste> {
         return new Waste(gs, regions);
     }
 
-    public void setLoadedWaste(GameScreen gs){
+    void setLoadedWaste(GameScreen gs){
         regions = new TextureRegion[textureName.length];
         toRegions();
         this.gs = gs;

@@ -10,6 +10,10 @@ import java.io.Serializable;
 
 public class Landscape implements Serializable {
 
+    private static final int NUMBER_POINT = 8;
+    private static final int PERCENT_FILLING = 5;
+    private static final int BLOCK = 1;
+    private static final int EMPTINESS = 0;
     private transient TextureRegion flooring;
     private transient TextureRegion tree;
     private final int cellSize;
@@ -30,8 +34,10 @@ public class Landscape implements Serializable {
     public void initMapLevel(Hero hero){
         for (int i = 0; i < numberCellX; i++) {
             for (int j = 0; j < numberCellY; j++) {
-                if (MathUtils.random(100) < 3 + gs.getLevel() && !isPlaceForHero(hero, i, j)) data[i][j] = 1;
-                else data[i][j] = 0;
+                if (MathUtils.random(Rules.RANGE_100) <= PERCENT_FILLING + gs.getLevel() &&
+                        !isPlaceForHero(hero, i, j))
+                    data[i][j] = BLOCK;
+                else data[i][j] = EMPTINESS;
             }
         }
     }
@@ -40,55 +46,81 @@ public class Landscape implements Serializable {
         for (int i = 0; i < numberCellX; i++) {
             for (int j = 0; j < numberCellY; j++) {
                 batch.draw(flooring, i * cellSize, j * cellSize);
-                if (data[i][j] == 1) batch.draw(tree, i * cellSize , j * cellSize);
+                if (data[i][j] == BLOCK) batch.draw(tree, i * cellSize , j * cellSize);
             }
         }
     }
 
-    public void update(float dt){
-
-    }
+    public void update(float dt){}
 
     private boolean isPlaceForHero(Eater eater, int cellX, int cellY) {
         if((int)eater.getPosition().x /cellSize == cellX && (int)eater.getPosition().y / cellSize == cellY) return true;
-        int numberPoint = 8;
         float radius = eater.getScale() * eater.getHalfWidth();
-        for (int i = 0; i < numberPoint; i++) {
-            float tmpX = eater.getPosition().x + radius * (float) Math.cos(2 * Math.PI / numberPoint * i);
-            float tmpY = eater.getPosition().y + radius * (float) Math.sin(2 * Math.PI / numberPoint * i);
+        for (int i = 0; i < NUMBER_POINT; i++) {
+            float angle = (2 * MathUtils.PI / NUMBER_POINT) * i;
+            float tmpX = eater.getPosition().x + radius * MathUtils.cos(angle);
+            float tmpY = eater.getPosition().y + radius * MathUtils.sin(angle);
             if (cellX == (int) tmpX / cellSize && cellY == (int) tmpY / cellSize) return true;
         }
         return false;
     }
 
+    private int checkX(int cellX){
+        if (cellX >= numberCellX) cellX = 0;
+        if (cellX < 0) cellX = numberCellX - 1;
+        return cellX;
+    }
+
+    private int checkY(int cellY){
+        if (cellY >= numberCellY) cellY = 0;
+        if (cellY < 0) cellY = numberCellY - 1;
+        return cellY;
+    }
+
+    public boolean isContacts(float x, float y, float radius, float angle){
+        float tmpX = x + radius * MathUtils.cosDeg(angle);
+        float tmpY = y + radius * MathUtils.sinDeg(angle);
+        int cellX = (int) tmpX/ cellSize;
+        int cellY = (int) tmpY/ cellSize;
+        return data[checkX(cellX)][checkY(cellY)] == BLOCK;
+    }
+
+    public float collide(float x, float y, float radius, float direction){
+        float startAngle = direction - Rules.ANGLE_90_DEGREES + Rules.ANGLE_30_DEGREES;
+        if (startAngle < 0) startAngle += Rules.ANGLE_360_DEGREES;
+        return getAngleContact(x, y, radius, startAngle);
+    }
+
+    private float getAngleContact(float x, float y, float radius, float startAngle){
+        int numberPoint = (int) (Rules.ANGLE_120_DEGREES / Rules.ANGLE_30_DEGREES);
+        for (int i = 0; i <= numberPoint; i++) {
+            float angle = startAngle + Rules.ANGLE_30_DEGREES * i;
+            if (angle > Rules.ANGLE_360_DEGREES) angle -= Rules.ANGLE_360_DEGREES;
+            if (isContacts(x, y, radius, angle)) return angle;
+        }
+        return Rules.NOT_FOUND;
+    }
+
     private boolean isCellEmpty(float x, float y){
         int cellX = (int) x/ cellSize;
         int cellY = (int) y/ cellSize;
-        if (cellX >= numberCellX) cellX = 0;
-        if (cellX < 0) cellX = numberCellX - 1;
-        if (cellY >= numberCellY) cellY = 0;
-        if (cellY < 0) cellY = numberCellY - 1;
-        return data[cellX][cellY] != 1;
+        return data[checkX(cellX)][checkY(cellY)] != BLOCK;
     }
 
     public boolean isCellEmpty(float x, float y, float radius){
         if (!isCellEmpty(x, y)) return false;
-        int numberPoint = 8;
-        for (int i = 0; i < numberPoint; i++) {
-            float tmpX = x + radius * (float) Math.cos(2 * Math.PI / numberPoint * i);
-            float tmpY = y + radius * (float) Math.sin(2 * Math.PI / numberPoint * i);
+        for (int i = 0; i < NUMBER_POINT; i++) {
+            float angle = (2 * MathUtils.PI / NUMBER_POINT) * i;
+            float tmpX = x + radius * MathUtils.cos(angle);
+            float tmpY = y + radius * MathUtils.sin(angle);
             int cellX = (int) tmpX/ cellSize;
             int cellY = (int) tmpY/ cellSize;
-            if (cellX >= numberCellX) cellX = 0;
-            if (cellX < 0) cellX = numberCellX - 1;
-            if (cellY >= numberCellY) cellY = 0;
-            if (cellY < 0) cellY = numberCellY - 1;
-            if (data[cellX][cellY] == 1) return false;
+            if (data[checkX(cellX)][checkY(cellY)] == BLOCK) return false;
         }
         return true;
     }
 
-    public void setLoadedLandscape(GameScreen gs){
+    void setLoadedLandscape(GameScreen gs){
         flooring = Assets.getInstance().getAtlas().findRegion("embossedTile");
         tree = Assets.getInstance().getAtlas().findRegion("treeInBox");
         this.gs = gs;

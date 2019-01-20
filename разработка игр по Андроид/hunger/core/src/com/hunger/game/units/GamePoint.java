@@ -1,6 +1,5 @@
 package com.hunger.game.units;
 
-
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
@@ -18,11 +17,12 @@ public abstract class GamePoint implements Poolable, Serializable {
     transient TextureRegion region;
     Vector2 position;
     Vector2 velocity;
+    Vector2 tmp;
     float scale;
     float satiety;
     float angle;
     int width;
-    int height;
+    private int height;
     int halfWidth;
     int halfHeight;
     boolean active;
@@ -56,14 +56,15 @@ public abstract class GamePoint implements Poolable, Serializable {
         this.gs = gs;
         if (textureName != null){
             this.region = Assets.getInstance().getAtlas().findRegion(textureName);
-            toSize();
+            toSize(region);
         }
         position = new Vector2();
         velocity = new Vector2();
+        tmp = new Vector2();
         scale = 1.0f;
     }
 
-    void toSize(){
+    void toSize(TextureRegion region){
         width = region.getRegionWidth();
         height = region.getRegionHeight();
         halfWidth = region.getRegionWidth() / 2;
@@ -71,7 +72,8 @@ public abstract class GamePoint implements Poolable, Serializable {
     }
 
     public void render(SpriteBatch batch){
-        batch.draw(region, position.x - halfWidth, position.y - halfHeight, halfWidth, halfHeight, width, height, scale, scale, angle);
+        batch.draw(region, position.x - halfWidth, position.y - halfHeight, halfWidth,
+                halfHeight, width, height, scale, scale, angle);
     }
 
     public void init(){
@@ -91,7 +93,44 @@ public abstract class GamePoint implements Poolable, Serializable {
         if (position.y > Rules.GLOBAL_HEIGHT) position.y = 0;
     }
 
-    private int getCoordinate(int limit){
+    void bounceOffWall(float dt){
+        float normal = Rules.ANGLE_90_DEGREES;
+        float angleIncidence = velocity.angle();
+        if (angleIncidence > Rules.ANGLE_360_DEGREES) angleIncidence -= Rules.ANGLE_360_DEGREES;
+        if (angleIncidence % Rules.ANGLE_90_DEGREES == 0) {
+            velocity.set(velocity.scl(Rules.TURN));
+            move(dt);
+        } else {
+            while (angleIncidence > normal){
+                normal += Rules.ANGLE_90_DEGREES;
+            }
+            reflect(angleIncidence, normal, dt);
+        }
+    }
+
+    private void reflect(float angleIncidence, float normal, float dt){
+        float angleReflection = normal - angleIncidence;
+        float angle = normal + angleReflection;
+        if (angle > Rules.ANGLE_360_DEGREES) angle -= Rules.ANGLE_360_DEGREES;
+        velocity.setAngle(angle);
+        move(dt);
+        if (gs.getLandscape().isCellEmpty(tmp.x, tmp.y, halfWidth * scale)) return;
+        normal -= Rules.ANGLE_90_DEGREES;
+        angleReflection = Math.abs(normal - angleIncidence);
+        if (normal == Rules.ANGLE_0_DEGREES) normal = Rules.ANGLE_360_DEGREES;
+        velocity.setAngle(normal - angleReflection);
+        move(dt);
+        if (gs.getLandscape().isCellEmpty(tmp.x, tmp.y, halfWidth * scale)) return;
+        velocity.set(velocity.scl(Rules.TURN));
+        move(dt);
+    }
+
+    void move(float dt){
+        tmp.set(position);
+        tmp.mulAdd(velocity, dt);
+    }
+
+    private float getCoordinate(float limit){
         return MathUtils.random(limit);
     }
 }

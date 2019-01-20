@@ -26,10 +26,10 @@ import java.io.*;
 
 public class GameScreen implements Screen {
 
-    private static final int NUMBER_FOODS = 90;
-    private static final int NUMBER_HOOLIGANS = 30;
+    private static final int NUMBER_FOODS = 30;
+    private static final int NUMBER_HOOLIGANS = 15;
     private static final int NUMBER_PARTICLE = 200;
-    private static final int QUANTITY_OF_LIFE = 1;
+    private static final int QUANTITY_OF_LIFE = 5;
     private SpriteBatch batch;
     private boolean loadSaveGame;
     private Landscape landscape;
@@ -56,7 +56,7 @@ public class GameScreen implements Screen {
     private int live;
     private int score;
 
-    public int getScore() {
+    int getScore() {
         return score;
     }
 
@@ -68,7 +68,7 @@ public class GameScreen implements Screen {
         return particle;
     }
 
-    public void setLoadSaveGame(boolean loadSaveGame) {
+    void setLoadSaveGame(boolean loadSaveGame) {
         this.loadSaveGame = loadSaveGame;
     }
 
@@ -165,7 +165,8 @@ public class GameScreen implements Screen {
 
         Label label = new Label("Save this game?", skin, "font32", Color.ORANGE);
 
-        Window.WindowStyle windowStyle = new Window.WindowStyle(font26, Color.YELLOW, skin.getDrawable("windowDialog"));
+        Window.WindowStyle windowStyle = new Window.WindowStyle(font26, Color.YELLOW,
+                skin.getDrawable("windowDialog"));
 
         stageDialog = new Stage(ScreenManager.getInstance().getViewPort(), batch);
 
@@ -198,7 +199,8 @@ public class GameScreen implements Screen {
     }
 
     private void saveGame(){
-        try(ObjectOutputStream save = new ObjectOutputStream(Gdx.files.local(Rules.SAVE_FILE).write(false))) {
+        try(ObjectOutputStream save = new ObjectOutputStream(Gdx.files.local(Rules.SAVE_FILE)
+                .write(false))) {
             save.writeInt(level);
             save.writeInt(live);
             save.writeObject(landscape);
@@ -214,7 +216,8 @@ public class GameScreen implements Screen {
     }
 
     private void loadGame(){
-        try (ObjectInputStream load = new ObjectInputStream(Gdx.files.local(Rules.SAVE_FILE).read())){
+        try (ObjectInputStream load = new ObjectInputStream(Gdx.files.local(Rules.SAVE_FILE)
+                .read())){
             level = load.readInt();
             live = load.readInt();
             landscape = (Landscape) load.readObject();
@@ -249,8 +252,10 @@ public class GameScreen implements Screen {
         Button butExitGame = new Button(skin, "styleExit");
         Button butPauseGame = new Button(skin, "stylePausePlay");
 
-        butExitGame.setPosition(Rules.WORLD_WIDTH - styleExit.up.getMinWidth() - Rules.INDENT, Rules.WORLD_HEIGHT  - styleExit.up.getMinHeight() - Rules.INDENT);
-        butPauseGame.setPosition(Rules.WORLD_WIDTH - stylePausePlay.up.getMinWidth() - Rules.INDENT, Rules.WORLD_HEIGHT - styleExit.up.getMinHeight() - 2 * Rules.INDENT - 2 * stylePausePlay.up.getMinHeight());
+        butExitGame.setPosition(Rules.WORLD_WIDTH - styleExit.up.getMinWidth() - Rules.INDENT,
+            Rules.WORLD_HEIGHT  - styleExit.up.getMinHeight() - Rules.INDENT);
+        butPauseGame.setPosition(Rules.WORLD_WIDTH - stylePausePlay.up.getMinWidth() - Rules.INDENT,
+            Rules.WORLD_HEIGHT - styleExit.up.getMinHeight() - 2 * Rules.INDENT - 2 * stylePausePlay.up.getMinHeight());
 
         controlPanel.addActor(butExitGame);
         controlPanel.addActor(butPauseGame);
@@ -297,10 +302,12 @@ public class GameScreen implements Screen {
         miniMap.render(batch);
         font.draw(batch, hero.getScoreLine(), Rules.INDENT, Rules.WORLD_HEIGHT - Rules.INDENT);
         if (pause){
-            font.draw(batch, Rules.PAUSE,  ScreenManager.getInstance().getCamera().position.x - 50.0f,  ScreenManager.getInstance().getCamera().position.y + font.getCapHeight() / 2);
+            font.draw(batch, Rules.PAUSE,  ScreenManager.getInstance().getCamera().position.x - 50.0f,
+                ScreenManager.getInstance().getCamera().position.y + font.getCapHeight() / 2);
         }
         if (live == 0){
-            font.draw(batch, "game over",  ScreenManager.getInstance().getCamera().position.x - 100.0f,  ScreenManager.getInstance().getCamera().position.y + font.getCapHeight() / 2);
+            font.draw(batch, "game over",  ScreenManager.getInstance().getCamera().position.x - 100.0f,
+                ScreenManager.getInstance().getCamera().position.y + font.getCapHeight() / 2);
         }
         batch.end();
     }
@@ -333,7 +340,9 @@ public class GameScreen implements Screen {
         if (live > 0){
             batch.setColor(1,1,1,0.8f);
             for (int i = 0; i < live; i++) {
-                batch.draw(life, Rules.WORLD_WIDTH / 2 - (life.getRegionWidth() + Rules.INDENT) * live / 2 + life.getRegionWidth() + (Rules.INDENT + life.getRegionWidth()) * i, Rules.WORLD_HEIGHT - Rules.INDENT - life.getRegionHeight());
+                batch.draw(life, Rules.WORLD_WIDTH / 2.0f - (life.getRegionWidth() + Rules.INDENT) *
+                    live / 2 + life.getRegionWidth() + (Rules.INDENT + life.getRegionWidth()) * i,
+                        Rules.WORLD_HEIGHT - Rules.INDENT - life.getRegionHeight());
             }
             batch.setColor(1,1,1,1);
         }
@@ -380,10 +389,12 @@ public class GameScreen implements Screen {
     }
 
     private void controlCameraHero(){
-        if (cameraHero.position.x < Rules.WORLD_WIDTH / 2) cameraHero.position.x = Rules.WORLD_WIDTH / 2;
-        if (cameraHero.position.y < Rules.WORLD_HEIGHT / 2) cameraHero.position.y = Rules.WORLD_HEIGHT / 2;
-        if (cameraHero.position.x > Rules.GLOBAL_WIDTH - Rules.WORLD_WIDTH / 2) cameraHero.position.x = Rules.GLOBAL_WIDTH - Rules.WORLD_WIDTH / 2;
-        if (cameraHero.position.y > Rules.GLOBAL_HEIGHT - Rules.WORLD_HEIGHT / 2) cameraHero.position.y = Rules.GLOBAL_HEIGHT - Rules.WORLD_HEIGHT / 2;
+        if (cameraHero.position.x < Rules.WORLD_WIDTH / 2) cameraHero.position.x = Rules.WORLD_WIDTH / 2.0f;
+        if (cameraHero.position.y < Rules.WORLD_HEIGHT / 2) cameraHero.position.y = Rules.WORLD_HEIGHT / 2.0f;
+        if (cameraHero.position.x > Rules.GLOBAL_WIDTH - Rules.WORLD_WIDTH / 2)
+            cameraHero.position.x = Rules.GLOBAL_WIDTH - Rules.WORLD_WIDTH / 2.0f;
+        if (cameraHero.position.y > Rules.GLOBAL_HEIGHT - Rules.WORLD_HEIGHT / 2)
+            cameraHero.position.y = Rules.GLOBAL_HEIGHT - Rules.WORLD_HEIGHT / 2.0f;
     }
 
     private void goToLevel(){
@@ -422,9 +433,9 @@ public class GameScreen implements Screen {
 
     private void checkForEatingAnother(){
         for (int i = 0; i < hooligans.activeList.size(); i++) {
-            if (hooligans.activeList.get(i).isRunOver(hero)) {
+            if (hooligans.activeList.get(i).isRunOver(hero) || hero.isRunOver(hooligans.activeList.get(i))) {
                 hooligans.activeList.get(i).smite(hero);
-                if (!hero.isActive()){
+                if (!hero.isActive()) {
                     live--;
                     return;
                 }

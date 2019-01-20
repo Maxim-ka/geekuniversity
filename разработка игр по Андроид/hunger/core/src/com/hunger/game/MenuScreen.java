@@ -2,7 +2,6 @@ package com.hunger.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.files.FileHandleStream;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -14,11 +13,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.DataInput;
 import com.badlogic.gdx.utils.StringBuilder;
-
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 
 public class MenuScreen implements Screen {
 
@@ -58,9 +53,9 @@ public class MenuScreen implements Screen {
         Button buttonNewGame = new TextButton("Start New Game", skin, "buttonStyle");
         Button buttonLoadGame = new TextButton("Load Game", skin, "buttonStyle");
         Button buttonExitGame = new TextButton("Exit", skin, "buttonStyle");
-        buttonNewGame.setPosition(buttonStyle.up.getMinWidth() / 2, Rules.WORLD_HEIGHT / 2 - regionPicture.getRegionHeight() / 2 - buttonStyle.up.getMinHeight());
-        buttonLoadGame.setPosition(Rules.WORLD_WIDTH / 2 - buttonStyle.up.getMinWidth() / 2, Rules.WORLD_HEIGHT / 2 - regionPicture.getRegionHeight() / 2 - buttonStyle.up.getMinHeight());
-        buttonExitGame.setPosition(Rules.WORLD_WIDTH - buttonStyle.up.getMinWidth() - buttonStyle.up.getMinWidth() / 2, Rules.WORLD_HEIGHT / 2 - regionPicture.getRegionHeight() / 2 - buttonStyle.up.getMinHeight());
+        buttonNewGame.setPosition(buttonStyle.up.getMinWidth() / 2, Rules.WORLD_HEIGHT / 2.f - regionPicture.getRegionHeight() / 2.0f - buttonStyle.up.getMinHeight());
+        buttonLoadGame.setPosition(Rules.WORLD_WIDTH / 2.0f - buttonStyle.up.getMinWidth() / 2, Rules.WORLD_HEIGHT / 2.0f - regionPicture.getRegionHeight() / 2.0f - buttonStyle.up.getMinHeight());
+        buttonExitGame.setPosition(Rules.WORLD_WIDTH - buttonStyle.up.getMinWidth() - buttonStyle.up.getMinWidth() / 2, Rules.WORLD_HEIGHT / 2.0f - regionPicture.getRegionHeight() / 2.0f - buttonStyle.up.getMinHeight());
         stage.addActor(buttonNewGame);
         stage.addActor(buttonLoadGame);
         stage.addActor(buttonExitGame);
@@ -103,9 +98,9 @@ public class MenuScreen implements Screen {
         Gdx.gl.glClearColor(0, 0, 0.6f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         batch.begin();
-        font92.draw(batch, "H U N G E R", Rules.WORLD_WIDTH / 2 - 200.0f, Rules.WORLD_HEIGHT - font92.getLineHeight() / 2);
-        font48.draw(batch, stringBuilder, Rules.WORLD_WIDTH / 2 - 150.0f, Rules.WORLD_HEIGHT - font92.getLineHeight() - font48.getLineHeight());
-        batch.draw(regionPicture,Rules.WORLD_WIDTH / 2 - regionPicture.getRegionWidth() / 2, Rules.WORLD_HEIGHT / 2 - regionPicture.getRegionHeight() / 2);
+        font92.draw(batch, "H U N G E R", Rules.WORLD_WIDTH / 2.0f - 200.0f, Rules.WORLD_HEIGHT - font92.getLineHeight() / 2);
+        font48.draw(batch, stringBuilder, Rules.WORLD_WIDTH / 2.0f - 150.0f, Rules.WORLD_HEIGHT - font92.getLineHeight() - font48.getLineHeight());
+        batch.draw(regionPicture,Rules.WORLD_WIDTH / 2.0f - regionPicture.getRegionWidth() / 2.0f, Rules.WORLD_HEIGHT / 2.0f - regionPicture.getRegionHeight() / 2.0f);
         batch.end();
         stage.draw();
         stageDialog.draw();

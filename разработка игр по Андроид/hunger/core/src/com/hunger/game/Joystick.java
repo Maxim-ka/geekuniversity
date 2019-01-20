@@ -15,6 +15,7 @@ public class Joystick extends InputAdapter {
     private int lastId;
     private Vector2 vs;
     private Vector2 tmp;
+    private Vector2 position;
 
     public boolean isActive() {
         return lastId > -1;
@@ -26,14 +27,15 @@ public class Joystick extends InputAdapter {
 
     public Joystick() {
         TextureRegion texture = Assets.getInstance().getAtlas().findRegion("joystick");
-        this.back = new TextureRegion(texture, 0, 0, 200, 200);
-        this.stick = new TextureRegion(texture, 0, 200, 50, 50);
-        this.rectangle = new Rectangle(50, 50, 200, 200);
-        this.joyCenterX = rectangle.x + rectangle.width / 2;
-        this.joyCenterY = rectangle.y + rectangle.height / 2;
-        this.vs = new Vector2();
-        this.lastId = -1;
-        this.tmp = new Vector2();
+        back = new TextureRegion(texture, 0, 0, 200, 200);
+        stick = new TextureRegion(texture, 0, 200, 50, 50);
+        rectangle = new Rectangle(50, 50, 200, 200);
+        joyCenterX = rectangle.x + rectangle.width / 2;
+        joyCenterY = rectangle.y + rectangle.height / 2;
+        vs = new Vector2();
+        tmp = new Vector2();
+        position = new Vector2();
+        lastId = -1;
     }
 
     public void render(SpriteBatch batch) {
@@ -87,5 +89,4 @@ public class Joystick extends InputAdapter {
         }
         return true;
     }
-
 }

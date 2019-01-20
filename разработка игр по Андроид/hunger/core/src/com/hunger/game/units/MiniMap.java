@@ -2,7 +2,6 @@ package com.hunger.game.units;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.Vector2;
 import com.hunger.game.Assets;
 import com.hunger.game.GameScreen;
 import com.hunger.game.Rules;
@@ -21,19 +20,6 @@ public class MiniMap extends GamePoint implements Serializable {
     private int halfWidthMiniGoodFood;
     private int halfHeightMiniGoodFood;
     private float scanRadius;
-    private Vector2 tmp;
-
-    public void setRegionMiniHero(TextureRegion regionMiniHero) {
-        this.regionMiniHero = regionMiniHero;
-    }
-
-    public void setRegionMiniEnemy(TextureRegion regionMiniEnemy) {
-        this.regionMiniEnemy = regionMiniEnemy;
-    }
-
-    public void setRegionMiniGoodFood(TextureRegion regionMiniGoodFood) {
-        this.regionMiniGoodFood = regionMiniGoodFood;
-    }
 
     public MiniMap(GameScreen gs) {
         super(gs, "scanerMiniMap");
@@ -49,22 +35,24 @@ public class MiniMap extends GamePoint implements Serializable {
         position.set(Rules.WORLD_WIDTH - halfWidth - Rules.INDENT, halfHeight + Rules.INDENT);
         active = true;
         scanRadius = 1000.0f;
-        tmp = new Vector2();
     }
 
     public void render(SpriteBatch batch){
         super.render(batch);
         if (gs.getHero().isActive()){
-            batch.draw(regionMiniHero, this.position.x - halfWidthMiniHero, this.position.y - halfHeightMiniHero);
+            batch.draw(regionMiniHero, this.position.x - halfWidthMiniHero,
+                    this.position.y - halfHeightMiniHero);
         }
         for (int i = 0; i < gs.getHooligans().getActiveList().size(); i++) {
             if (isScans(gs.getHooligans().getActiveList().get(i)))
-                batch.draw(regionMiniEnemy, this.position.x - halfWidthMiniEnemy + tmp.x, this.position.y + tmp.y - halfHeightMiniEnemy);
+                batch.draw(regionMiniEnemy, this.position.x - halfWidthMiniEnemy + tmp.x,
+                    this.position.y + tmp.y - halfHeightMiniEnemy);
         }
         for (int i = 0; i < gs.getFoods().getActiveList().size(); i++) {
             if (gs.getFoods().getActiveList().get(i).getType() != Food.Type.LEMON){
                 if (isScans(gs.getFoods().getActiveList().get(i)))
-                    batch.draw(regionMiniGoodFood, this.position.x + tmp.x - halfWidthMiniGoodFood, this.position.y + tmp.y - halfHeightMiniGoodFood);
+                    batch.draw(regionMiniGoodFood, this.position.x + tmp.x - halfWidthMiniGoodFood,
+                    this.position.y + tmp.y - halfHeightMiniGoodFood);
             }
         }
     }

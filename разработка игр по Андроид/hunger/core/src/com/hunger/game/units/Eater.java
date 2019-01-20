@@ -5,78 +5,61 @@ import com.badlogic.gdx.math.Vector2;
 import com.hunger.game.GameScreen;
 import com.hunger.game.Rules;
 
-import java.io.Serializable;
-
 public abstract class Eater extends GamePoint {
 
+    private static final float MIN_SPEED = 200.0f;
+    private static final float MAX_SPEED = 400.0f;
     float acceleration;
     float angleToTarget;
+    float nX;
+    float nY;
     Vector2 target;
-    Vector2 tmp;
+
 
     Eater(GameScreen gs, String textureName){
         super(gs, textureName);
-        tmp = new Vector2();
         target = new Vector2();
     }
 
     @Override
     public void update(float dt){
         super.update(dt);
-        velocity.scl(0.97f);
-        boolean setPos = true;
-        do{
-            tmp.set(position);
-            tmp.mulAdd(velocity, dt);
-            if (gs.getLandscape().isCellEmpty(tmp.x, tmp.y, halfWidth * scale)){
-                position.set(tmp);
-                setPos = false;
-            }else{
-                velocity.rotate(MathUtils.randomSign());
-            }
-        }while (setPos);
-//        float velLen = velocity.len() * dt;
-//        tmp.set(velocity);
-//        tmp.nor();
-//        float nX = tmp.x;
-//        float nY = tmp.y;
-//        for (int i = 0; i < velLen; i++) {
-//            tmp.set(position.x + nX, position.y);
-//            if (gs.getLandscape().isCellEmpty(tmp.x, tmp.y, halfWidth * scale)){
-//                position.set(tmp);
-//            }
-//            tmp.set(position.x, position.y + nY);
-//            if (gs.getLandscape().isCellEmpty(tmp.x, tmp.y, halfWidth * scale)){
-//                position.set(tmp);
-//            }
-//        }
     }
 
-    void getSpeed(float dt){
-        if (angle < angleToTarget) angle = (Math.abs(angle - angleToTarget) <= 180.0f)? angle + 180.0f *dt : angle - 180.0f *dt;
-        if (angle > angleToTarget) angle = (Math.abs(angle - angleToTarget) <= 180.0f)? angle - 180.0f *dt : angle + 180.0f *dt;
-        if (angle < 0.0f) angle += 360.0f;
-        if (angle > 360.0f) angle -= 360.0f;
-        velocity.add(acceleration * (float) Math.cos(Math.toRadians(angle)) * dt, acceleration * (float) Math.sin(Math.toRadians(angle)) * dt);
+    float getGoing(float dt){
+        if (angle < angleToTarget) angle = (Math.abs(angle - angleToTarget) <= Rules.ANGLE_180_DEGREES) ?
+                angle + Rules.ANGLE_180_DEGREES * dt : angle - Rules.ANGLE_180_DEGREES * dt;
+        if (angle > angleToTarget) angle = (Math.abs(angle - angleToTarget) <= Rules.ANGLE_180_DEGREES) ?
+                angle - Rules.ANGLE_180_DEGREES * dt : angle + Rules.ANGLE_180_DEGREES * dt;
+        if (angle < Rules.ANGLE_0_DEGREES) angle += Rules.ANGLE_360_DEGREES;
+        if (angle > Rules.ANGLE_360_DEGREES) angle -= Rules.ANGLE_360_DEGREES;
+        velocity.set(acceleration * MathUtils.cosDeg(angle) * dt, acceleration * MathUtils.sinDeg(angle) * dt);
+        float velLen = velocity.len() * dt;
+        velocity.nor();
+        nX = velocity.x;
+        nY = velocity.y;
+        return velLen;
     }
 
     public void smite(Eater another){
         if (another.isActive()){
-            if (this.scale * this.halfWidth < another.scale * another.halfWidth) another.gorge(this);
+            if (this.scale * this.halfWidth < another.scale * another.halfWidth)
+                another.gorge(this);
             else this.gorge(another);
         }
     }
 
     public void gorge(GamePoint another){
-        this.scale += another.satiety;
-        if (this.scale <= Rules.MIN_SCALE) this.scale = Rules.MIN_SCALE;
-        this.satiety = this.scale;
+        acceleration += another.satiety;
+        scale += another.satiety;
+        if (scale <= Rules.MIN_SCALE) scale = Rules.MIN_SCALE;
+        if (scale > Rules.MAX_SCALE) scale = Rules.MAX_SCALE;
+        satiety = scale;
         another.active = false;
     }
 
     public boolean isRunOver(GamePoint another) {
-        float distance = getDistance(another);
-        return  distance < (this.scale * this.halfWidth) || distance < (another.scale * another.halfWidth);
+        return  this.scale * this.halfWidth > getDistance(another);
     }
 
     float getDistance(GamePoint another){
@@ -84,6 +67,6 @@ public abstract class Eater extends GamePoint {
     }
 
     float getRandomAcceleration(){
-        return MathUtils.random(200.0f, 400.0f);
+        return MathUtils.random(MIN_SPEED, MAX_SPEED);
     }
 }
